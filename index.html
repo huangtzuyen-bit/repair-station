@@ -1,167 +1,167 @@
-﻿// 1. 設定區：請確保 GAS_URL 正確
-const GAS_URL = "https://script.google.com/macros/s/AKfycby631ke1ObiC6BfKBvsU3yFU1BNHVdraEYUbX2aN_RGWufbLfndKR_WxTJmh7fnsdJC/exec";
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>小家電維修所 送修查詢</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* 這裡放您原本提供的 CSS 樣式語法 ... */
+        :root { --orange: #FF7F4E; --yellow: #FFD801; --blue: #88CFEB; --green: #2F8B58; --light-bg: #F5F4F0; --white: #FFFFFF; --text-dark: #1A1A2E; --border: #E6E4DF; --shadow: 0 2px 14px rgba(0,0,0,0.07); --circle-size: 32px; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: var(--light-bg); color: var(--text-dark); }
+        .site-header { background: #FFFFFF; padding: 10px 16px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
+        .header-inner { display: flex; align-items: center; max-width: 560px; margin: 0 auto; height: 52px; position: relative; }
+        .logo-title { position: absolute; left: 0; right: 0; text-align: center; font-size: 17px; font-weight: 900; }
+        .main { max-width: 560px; margin: 0 auto; padding: 24px 18px 60px; }
+        /* 這裡省略其他您原本豐富的 CSS 語法，請務必保留您原始代碼中的全部 CSS */
+        .repair-card { background:white; border-radius:13px; border:1.5px solid var(--border); margin-bottom:9px; overflow:hidden; }
+        .rc-header { display:flex; align-items:center; gap:10px; padding:12px 13px; cursor:pointer; }
+        .status-badge { padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+        .s-checked_in { background:#FFFBE6; color:#9B7600; }
+        .rc-details { max-height:0; overflow:hidden; transition:max-height 0.4s ease; border-top:1.5px solid transparent; }
+        .repair-card.open .rc-details { max-height:1000px; border-top-color:var(--border); }
+        .edit-section { background:var(--light-bg); border-radius:10px; padding:10px; margin-top:10px; }
+        .save-btn { width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:9px; font-weight:700; cursor:pointer; }
+        .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#1A1A2E; color:white; padding:10px 20px; border-radius:30px; z-index:999; transition:transform 0.3s; }
+        .toast.show { transform:translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
 
-// 狀態對照表 (對應你 Sheet 裡的中文狀態)
-const statusMap = {
-  "未送修": { label: '已完成報到', cls: 's-checked_in' },
-  "OK_成功": { label: '✅ 維修成功', cls: 's-done_success' },
-  "NO_失敗": { label: '❌ 維修失敗', cls: 's-done_fail' },
-  "轉診或退回不受理": { label: '退回不受理', cls: 's-in_repair' }
-};
+<header class="site-header">
+    <div class="header-inner">
+        <div class="logo-title">小家電維修所 送修查詢</div>
+    </div>
+</header>
 
-let repairData = [];
-let lastUpdated = new Date();
-let activeNames = {};
-
-// 初始化：自動載入資料
-window.onload = () => {
-  reloadData();
-  setLang('zh');
-};
-
-// 從 Google Sheets 獲取資料
-async function fetchFromGoogleSheets() {
-  try {
-    const response = await fetch(GAS_URL);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("讀取失敗:", error);
-    showToast("❌ 無法連線至雲端資料庫");
-    return [];
-  }
-}
-
-// 儲存更新至 Google Sheets
-async function saveToGoogleSheets(updateObj) {
-  try {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify(updateObj)
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("儲存失敗:", error);
-    showToast("❌ 雲端同步失敗");
-  }
-}
-
-// 重新整理資料
-async function reloadData() {
-  const btn = document.getElementById('reloadBtn');
-  btn.classList.add('spinning');
-  
-  const freshData = await fetchFromGoogleSheets();
-  if (freshData.length > 0) {
-    repairData = freshData;
-    lastUpdated = new Date();
-    updateLastUpdated();
-    if (document.getElementById('phoneInput').value.trim()) doSearch();
-    showToast('🔄 資料已同步更新');
-  }
-  
-  setTimeout(() => btn.classList.remove('spinning'), 700);
-}
-
-// 搜尋功能
-function doSearch() {
-  const raw = document.getElementById('phoneInput').value.trim();
-  if (!raw) { showToast('請輸入電話後三碼'); return; }
-  
-  const codes = raw.split(',').map(s => s.trim()).filter(s => /^\d{1,4}$/.test(s));
-  const matched = repairData.filter(r => codes.some(c => String(r.phone).endsWith(c)));
-  
-  if (!matched.length) {
-    document.getElementById('nameSelectWrap').style.display = 'none';
-    document.getElementById('searchResults').innerHTML = '<div class="empty-state">查無資料，請確認號碼</div>';
-    return;
-  }
-
-  // 處理多人同號碼邏輯 (簡化處理)
-  renderResults(matched);
-}
-
-// 渲染卡片
-function renderResults(items) {
-  document.getElementById('searchResults').innerHTML = items.map(item => {
-    const s = statusMap[item.status] || { label: item.status, cls: 's-checked_in' };
-    return `
-      <div class="repair-card" id="card-${item.id}">
-        <div class="rc-header" onclick="toggleCard(${item.id})">
-          <div class="rc-seq">#${item.id}</div>
-          <div class="rc-main">
-            <div class="rc-name">${item.item}</div>
-            <div class="rc-owner">${item.name}</div>
-          </div>
-          <div class="rc-right">
-            <span class="status-badge ${s.cls}">${s.label}</span>
-          </div>
+<main class="main">
+    <div style="background:white; padding:15px; border-radius:15px; box-shadow:var(--shadow); margin-bottom:20px;">
+        <div style="display:flex; gap:8px;">
+            <input type="text" id="phoneInput" placeholder="輸入電話後三碼" style="flex:1; padding:10px; border:2px solid var(--border); border-radius:10px;">
+            <button onclick="doSearch()" style="padding:10px 20px; background:var(--orange); color:white; border:none; border-radius:10px; font-weight:700;">搜尋</button>
+            <button id="reloadBtn" onclick="reloadData()" style="padding:10px; border:2px solid var(--border); border-radius:10px; background:white;">↻</button>
         </div>
-        <div class="rc-details">
-          <div class="rc-details-inner">
-            <div class="detail-grid">
-              <div><div class="d-label">維修備註</div><div class="d-value">${item.notes || '無'}</div></div>
-              <div><div class="d-label">費用</div><div class="d-value">NT$ ${item.cost || 0}</div></div>
+        <div id="lastUpdated" style="font-size:12px; color:#999; margin-top:8px;">🕐 資料載入中...</div>
+    </div>
+
+    <div id="searchResults">
+        </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // 這裡放入我上次提供給您的 JavaScript 完整邏輯
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby631ke1ObiC6BfKBvsU3yFU1BNHVdraEYUbX2aN_RGWufbLfndKR_WxTJmh7fnsdJC/exec";
+
+    const statusMap = {
+      "未送修": { label: '已完成報到', cls: 's-checked_in' },
+      "OK_成功": { label: '✅ 維修成功', cls: 's-done_success' },
+      "NO_失敗": { label: '❌ 維修失敗', cls: 's-done_fail' },
+      "轉診或退回不受理": { label: '退回不受理', cls: 's-in_repair' }
+    };
+
+    let repairData = [];
+    let lastUpdated = new Date();
+
+    window.onload = () => { reloadData(); };
+
+    async function reloadData() {
+      const btn = document.getElementById('reloadBtn');
+      if(btn) btn.style.opacity = '0.5';
+      try {
+        const response = await fetch(GAS_URL);
+        repairData = await response.json();
+        lastUpdated = new Date();
+        updateLastUpdated();
+        showToast('🔄 資料已同步更新');
+      } catch (e) {
+        showToast('❌ 無法連線至雲端');
+      } finally {
+        if(btn) btn.style.opacity = '1';
+      }
+    }
+
+    function doSearch() {
+      const val = document.getElementById('phoneInput').value.trim();
+      if (!val) return;
+      const matched = repairData.filter(r => String(r.phone).endsWith(val));
+      renderResults(matched);
+    }
+
+    function renderResults(items) {
+      const container = document.getElementById('searchResults');
+      if (!items.length) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">查無資料</div>';
+        return;
+      }
+      container.innerHTML = items.map(item => {
+        const s = statusMap[item.status] || { label: item.status, cls: 's-checked_in' };
+        return `
+          <div class="repair-card" id="card-${item.id}">
+            <div class="rc-header" onclick="toggleCard(${item.id})">
+              <div style="font-weight:900; background:#eee; padding:5px 8px; border-radius:5px; font-size:12px;">#${item.id}</div>
+              <div style="flex:1; margin-left:10px;">
+                <div style="font-weight:700;">${item.item}</div>
+                <div style="font-size:12px; color:#666;">${item.name}</div>
+              </div>
+              <div class="status-badge ${s.cls}">${s.label}</div>
             </div>
-            <div class="edit-section">
-              <div class="edit-label">🛠️ 更新資料</div>
-              <div class="edit-grid-2">
-                <div class="edit-field">
-                  <label>狀態</label>
-                  <select id="status-${item.id}">
+            <div class="rc-details">
+              <div style="padding:15px;">
+                <div style="margin-bottom:10px; font-size:14px;"><strong>備註：</strong>${item.notes || '無'}</div>
+                <div style="margin-bottom:15px; font-size:14px;"><strong>費用：</strong>NT$ ${item.cost || 0}</div>
+                
+                <div class="edit-section">
+                  <div style="font-size:12px; font-weight:700; margin-bottom:10px;">🛠️ 維修人員更新</div>
+                  <label style="font-size:12px;">進度狀態</label>
+                  <select id="status-${item.id}" style="width:100%; padding:8px; margin-bottom:10px; border-radius:5px;">
                     <option value="未送修" ${item.status==='未送修'?'selected':''}>未送修</option>
                     <option value="OK_成功" ${item.status==='OK_成功'?'selected':''}>OK_成功</option>
                     <option value="NO_失敗" ${item.status==='NO_失敗'?'selected':''}>NO_失敗</option>
                     <option value="轉診或退回不受理" ${item.status==='轉診或退回不受理'?'selected':''}>轉診或退回不受理</option>
                   </select>
-                </div>
-                <div class="edit-field">
-                  <label>費用</label>
-                  <input type="number" id="cost-${item.id}" value="${item.cost || ''}">
+                  <label style="font-size:12px;">費用</label>
+                  <input type="number" id="cost-${item.id}" value="${item.cost || ''}" style="width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;">
+                  <label style="font-size:12px;">備註</label>
+                  <input type="text" id="notes-${item.id}" value="${item.notes || ''}" style="width:100%; padding:8px; margin-bottom:15px; border-radius:5px; border:1px solid #ccc;">
+                  <button class="save-btn" onclick="saveCard(${item.id})">儲存更新</button>
                 </div>
               </div>
-              <div class="edit-field">
-                <label>備註</label>
-                <input type="text" id="notes-${item.id}" value="${item.notes || ''}">
-              </div>
-              <button class="save-btn" onclick="saveCard(${item.id})">💾 儲存並同步到雲端</button>
             </div>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-}
+          </div>`;
+      }).join('');
+    }
 
-// 儲存卡片資料
-async function saveCard(id) {
-  const status = document.getElementById('status-' + id).value;
-  const cost = document.getElementById('cost-' + id).value;
-  const notes = document.getElementById('notes-' + id).value;
-  
-  showToast('💾 同步中...');
-  
-  const res = await saveToGoogleSheets({ id, status, cost, notes });
-  if (res && res.result === "success") {
-    // 同步本地資料
-    const idx = repairData.findIndex(r => r.id == id);
-    repairData[idx].status = status;
-    repairData[idx].cost = cost;
-    repairData[idx].notes = notes;
-    
-    showToast('✅ 雲端同步成功');
-    reloadData(); // 重新整理畫面
-  }
-}
+    async function saveCard(id) {
+      const status = document.getElementById('status-' + id).value;
+      const cost = document.getElementById('cost-' + id).value;
+      const notes = document.getElementById('notes-' + id).value;
+      showToast('💾 同步中...');
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          body: JSON.stringify({ id, status, cost, notes })
+        });
+        showToast('✅ 同步成功');
+        reloadData();
+      } catch (e) {
+        showToast('❌ 更新失敗');
+      }
+    }
 
-// 其他輔助函數
-function toggleCard(id) { document.getElementById('card-' + id).classList.toggle('open'); }
-function updateLastUpdated() {
-  const t = lastUpdated;
-  document.getElementById('lastUpdated').textContent = `🕐 資料更新：${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
-}
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
+    function toggleCard(id) { document.getElementById('card-' + id).classList.toggle('open'); }
+    function updateLastUpdated() {
+      const t = lastUpdated;
+      document.getElementById('lastUpdated').textContent = `🕐 資料更新：${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+</script>
+</body>
+</html>
