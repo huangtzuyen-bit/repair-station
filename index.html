@@ -382,19 +382,19 @@ body {
           <div class="video-play">▶️</div>
           <div>
             <div class="v-title">活動場地導覽影片</div>
-            <div class="v-sub">如何抵達維修活動</div>
+            <div class="v-sub">如何抵達 · 報到流程 · 即將上線</div>
           </div>
         </a>
       </div>
     </div>
   </div>
 
-  <!-- ② 送修注意事項 -->
+  <!-- ② 活動注意事項 -->
   <div class="tl-item">
     <div class="tl-circle" style="background:#FFD801 !important; color:#1A1A2E;">2</div>
     <div class="tl-content">
       <div class="tl-head">
-        <div class="tl-main-label" style="color:#FFD801;">活動注意事項</div>
+        <div class="tl-main-label" style="color:#D4A500;">活動注意事項</div>
       </div>
       <div class="tl-divider"></div>
       <div class="tl-body">
@@ -409,7 +409,7 @@ body {
           </div>
           <div class="notice-row">
             <div class="n-bullet"></div>
-            <div class="n-text">歡迎觀看<strong>最下方家電保養知識</strong></div>
+            <div class="n-text">歡迎在旁觀看，家電醫生將<strong>分享故障原因與保養知識</strong></div>
           </div>
           <div class="notice-row">
             <div class="n-bullet"></div>
@@ -417,7 +417,7 @@ body {
           </div>
           <div class="notice-row">
             <div class="n-bullet"></div>
-            <div class="n-text">依報到順序維修，每件約 <strong>30 分鐘至 2 小時</strong>，可先查進度</div>
+            <div class="n-text">依序維修，每件約 <strong>30 分鐘至 2 小時</strong>，可先查進度再出發</div>
           </div>
         </div>
       </div>
@@ -429,14 +429,14 @@ body {
     <div class="tl-circle" style="background:#88CFEB !important; color:#1A1A2E;">3</div>
     <div class="tl-content">
       <div class="tl-head">
-        <div class="tl-main-label" style="color:#88CFEB;">維修進度查詢</div>
+        <div class="tl-main-label" style="color:#1A6A8A;">維修進度查詢</div>
         <div class="tl-sub-label">若有任何問題請透過 Facebook 聯繫</div>
       </div>
       <div class="tl-divider"></div>
       <div class="tl-body">
 
         <div class="search-row">
-          <input class="search-input" type="text" id="phoneInput" placeholder="輸入電話後三碼" maxlength="30" onkeydown="if(event.key==='Enter') doSearch()">
+          <input class="search-input" type="text" id="phoneInput" placeholder="輸入電話後三碼，多人用逗號分隔" maxlength="30" onkeydown="if(event.key==='Enter') doSearch()">
           <button class="icon-btn btn-search" onclick="doSearch()" type="button">🔍</button>
           <button class="icon-btn btn-reload" id="reloadBtn" onclick="reloadData()" type="button">↻</button>
         </div>
@@ -510,7 +510,7 @@ body {
 
 
 // ── Google Apps Script URL ──────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxypEZjRG-idZcAYbY9_TUQDSw936kQG0wdCFRgRqN1DJA6tLOxBNfd_wl25oKLMczN/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzZ6rYzyJOxnnqs94ntbsYWwh6zJFBwz-j5PjEhtAG1gr9JwErlVO7X4Pye_sgt13S9/exec';
 
 // ── 欄位對應 ─────────────────────────────────────────────────────
 // GAS doGet 已直接回傳 {id, name, phone, item, status, notes, cost, co2}
@@ -521,10 +521,11 @@ function sheetRowToObj(row) {
     name:   row.name   || '',
     phone:  String(row.phone || ''),
     item:   row.item   || '',
-    brand:  row.brand  || '',   // GAS 若無此欄會是 undefined → ''
-    model:  row.model  || '',
-    status: (row.status || '').trim() || 'checked_in',
-    notes:  row.notes  || '',
+    brand:  row.brand  || '',   // 表單「品牌」
+    model:  row.model  || '',   // 表單「型號」
+    status: (row.status || '').trim() || '',  // 表單「分類」
+    result: row.result || '',   // 表單「維修結果」
+    notes:  row.notes  || '',   // 表單「維修結果說明」
     cost:   (row.cost !== '' && row.cost !== null && row.cost !== undefined) ? Number(row.cost) : null,
     co2:    (row.co2  !== '' && row.co2  !== null && row.co2  !== undefined) ? Number(row.co2)  : null,
   };
@@ -534,12 +535,14 @@ let repairData = [];
 let lastUpdated = new Date();
 let activeNames = {};
 
+// statusMap key = 表單「分類」欄位的實際文字值
 const statusMap = {
-  checked_in:   { label:'已完成報到',       cls:'s-checked_in'   },
-  in_queue:     { label:'進入維修',         cls:'s-repairing'    },
-  repairing:    { label:'維修進行中',       cls:'s-in_repair'    },
-  done_success: { label:'✅ 維修結束：成功', cls:'s-done_success' },
-  done_fail:    { label:'❌ 維修結束：失敗', cls:'s-done_fail'    },
+  '已報到':    { label:'已報到',    cls:'s-checked_in'   },
+  '取消&無送修': { label:'取消／無送修', cls:'s-done_fail'    },
+  '待領取':    { label:'待領取',    cls:'s-in_repair'    },
+  '候補':      { label:'候補',      cls:'s-repairing'    },
+  '已取件':    { label:'已取件',    cls:'s-done_success' },
+  '轉診&退回': { label:'轉診／退回', cls:'s-done_fail'    },
 };
 
 // ── 讀取 Google Sheet（JSONP，繞過 CORS redirect 限制）──────────
@@ -691,41 +694,49 @@ function renderResults(items) {
 }
 
 function renderCard(item) {
-  const s = statusMap[item.status] || { label: item.status, cls: 's-checked_in' };
-  const isSuccess = item.status === 'done_success';
+  // status 是表單「分類」的文字值，直接對應 statusMap key
+  const s = statusMap[item.status] || { label: item.status || '—', cls: 's-checked_in' };
+  const isSuccess = item.status === '已取件';
   const co2Tag = isSuccess && item.co2
     ? '<div class="co2-mini">🌿 減碳 ' + item.co2 + ' kg</div>' : '';
+
+  // 品牌型號：有值才顯示，避免出現「undefined undefined」
+  const brandModel = [item.brand, item.model].filter(Boolean).join(' ') || '—';
+
+  // 選項 selected 輔助函式
+  function sel(val) { return item.status === val ? ' selected' : ''; }
 
   return '<div class="repair-card" id="card-' + item.id + '">'
     + '<div class="rc-header" onclick="toggleCard(' + item.id + ')">'
     +   '<div class="rc-seq">#' + item.id + '</div>'
-    +   '<div class="rc-main"><div class="rc-name">' + item.item + '</div>'
+    +   '<div class="rc-main"><div class="rc-name">' + (item.item || '—') + '</div>'
     +     '<div class="rc-owner">' + item.name + '</div></div>'
     +   '<div class="rc-right"><span class="status-badge ' + s.cls + '">' + s.label + '</span>' + co2Tag + '</div>'
     + '</div>'
     + '<div class="rc-details"><div class="rc-details-inner">'
     +   '<div class="detail-grid">'
-    +     '<div><div class="d-label">品牌型號</div><div class="d-value">' + item.brand + ' ' + item.model + '</div></div>'
-    +     '<div><div class="d-label">故障原因</div><div class="d-value">' + item.issue + '</div></div>'
-    +     '<div><div class="d-label">維修備註</div><div class="d-value">' + (item.notes || '—') + '</div></div>'
+    +     '<div><div class="d-label">品牌型號</div><div class="d-value">' + brandModel + '</div></div>'
+    +     '<div><div class="d-label">維修結果</div><div class="d-value">' + (item.result || '—') + '</div></div>'
+    +     '<div><div class="d-label">維修結果說明</div><div class="d-value">' + (item.notes || '—') + '</div></div>'
     +     '<div><div class="d-label">維修費用</div><div class="d-value">' + (item.cost === null ? '待確認' : item.cost === 0 ? '免費 🎉' : 'NT$ ' + item.cost) + '</div></div>'
     +     (item.co2 ? '<div><div class="d-label">減碳貢獻</div><div class="d-value" style="color:var(--green)">🌿 ' + item.co2 + ' kg CO₂</div></div>' : '')
     +   '</div>'
     +   '<div class="edit-section"><div class="edit-label">🛠️ 維修團隊更新資料</div>'
     +     '<div class="edit-grid-2">'
-    +       '<div class="edit-field"><label>維修進度</label>'
+    +       '<div class="edit-field"><label>分類</label>'
     +         '<select id="status-' + item.id + '">'
-    +           '<option value="checked_in"'   + (item.status==='checked_in'?'   selected':'') + '>已完成報到</option>'
-    +           '<option value="repairing"'    + (item.status==='repairing'?'    selected':'') + '>進入維修</option>'
-    +           '<option value="in_repair"'    + (item.status==='in_repair'?'    selected':'') + '>維修進行中</option>'
-    +           '<option value="done_success"' + (item.status==='done_success'?' selected':'') + '>維修結束：成功</option>'
-    +           '<option value="done_fail"'    + (item.status==='done_fail'?'    selected':'') + '>維修結束：失敗</option>'
+    +           '<option value="已報到"' +    sel('已報到')    + '>已報到</option>'
+    +           '<option value="取消&無送修"' + sel('取消&無送修') + '>取消／無送修</option>'
+    +           '<option value="待領取"' +    sel('待領取')    + '>待領取</option>'
+    +           '<option value="候補"' +      sel('候補')      + '>候補</option>'
+    +           '<option value="已取件"' +    sel('已取件')    + '>已取件</option>'
+    +           '<option value="轉診&退回"' + sel('轉診&退回') + '>轉診／退回</option>'
     +         '</select></div>'
     +       '<div class="edit-field"><label>維修費用 (NT$)</label>'
     +         '<input type="number" id="cost-' + item.id + '" value="' + (item.cost !== null ? item.cost : '') + '" placeholder="輸入費用" inputmode="numeric"></div>'
     +     '</div>'
-    +     '<div class="edit-field"><label>維修備註</label>'
-    +       '<input type="text" id="notes-' + item.id + '" value="' + item.notes + '" placeholder="備註說明"></div>'
+    +     '<div class="edit-field"><label>維修結果說明</label>'
+    +       '<input type="text" id="notes-' + item.id + '" value="' + (item.notes || '') + '" placeholder="請輸入維修結果說明"></div>'
     +     '<button class="save-btn" onclick="saveCard(' + item.id + ')" type="button">💾 儲存並同步</button>'
     +     '<div class="save-ok" id="saveMsg-' + item.id + '">✅ 已儲存成功！</div>'
     +   '</div>'
