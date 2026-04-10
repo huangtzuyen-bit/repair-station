@@ -881,7 +881,7 @@ function renderCard(c, colId) {
     return `<span class="tag ${cls}">${t}</span>`;
   }).join('');
 
-  const resultCls = c.repairResult==='成功修復'?'':'c.repairResult==="部分修復"?'partial':'fail'`;
+  const resultCls = c.repairResult==='成功修復' ? '' : (c.repairResult==='部分修復' ? 'partial' : 'fail');
   const resultTag = c.repairResult ? `<span class="tag tag-result ${c.repairResult!='成功修復'?'fail':''}">${c.repairResult}</span>` : '';
 
   let topContent = '';
