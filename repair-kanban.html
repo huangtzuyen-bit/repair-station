@@ -3,1034 +3,831 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>小家電維修所</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<title>小家電維修所 · 維修追蹤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+*{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --white:#FFFFFF;
-  --bg:#F4F6F9;
-  --border:#E8ECF0;
-  --border2:#D0D7E0;
-  --text:#1A2332;
-  --text2:#5A6A7E;
-  --text3:#9AA5B4;
-  --blue:#4A90D9;
-  --blue-bg:#EBF4FF;
-  --orange:#F5A623;
-  --orange-bg:#FEF7EC;
-  --purple:#7B61FF;
-  --purple-bg:#F0EEFF;
-  --green:#27AE60;
-  --green-bg:#EDFAF3;
-  --red:#E74C3C;
-  --red-bg:#FEF0EF;
-  --gray:#8E9AAB;
-  --gray-bg:#F0F2F5;
-  --dark:#2C3E50;
-
-  /* column accent colors */
-  --col-pending:#9AA5B4;
-  --col-arrived:#4A90D9;
-  --col-repairing:#F5A623;
-  --col-ready:#7B61FF;
-  --col-done:#27AE60;
-  --col-transfer:#E74C3C;
-
-  --radius:8px;
-  --radius-lg:12px;
-  --shadow:0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:0 4px 12px rgba(0,0,0,.1);
+  --bg:#f2f3f6;
+  --surface:#ffffff;
+  --surface2:#f0f1f5;
+  --border:#e3e5ee;
+  --border2:#c9ccd8;
+  --text:#1c1e2e;
+  --text2:#575b78;
+  --text3:#9a9eb8;
+  --accent:#2563eb;
+  --accent-bg:#eef3ff;
+  --shadow:0 1px 3px rgba(28,35,80,.07),0 1px 8px rgba(28,35,80,.04);
+  --shadow-md:0 4px 18px rgba(28,35,80,.11);
 }
-
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Inter','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px}
-
-/* ── TOP BAR ── */
-.topbar{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  background:var(--white);
-  border-bottom:1px solid var(--border);
-  height:56px;
-  display:flex;align-items:center;padding:0 20px;gap:12px;
-}
-.topbar-logo{
-  font-weight:700;font-size:16px;color:var(--text);
-  display:flex;align-items:center;gap:6px;
-  white-space:nowrap;
-}
-.topbar-logo span{color:var(--blue)}
-.topbar-divider{width:1px;height:24px;background:var(--border);flex-shrink:0}
-.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
-.topbar-date{font-size:12px;color:var(--text2)}
-.topbar-spacer{flex:1}
-.topbar-stats{display:flex;align-items:center;gap:14px}
-.stat-pill{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--text2)}
-.stat-pill .dot{width:7px;height:7px;border-radius:50%}
-.sync-btn{
-  display:flex;align-items:center;gap:6px;
-  background:var(--blue);color:#fff;
-  border:none;border-radius:var(--radius);
-  padding:7px 14px;font-size:13px;font-weight:600;
-  cursor:pointer;font-family:inherit;transition:background .15s;
-  white-space:nowrap;flex-shrink:0;
-}
-.sync-btn:hover{background:#3a7bc8}
-.sync-btn:active{background:#2d6aaf}
-
-/* ── BOTTOM NAV ── */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:100;
-  background:var(--white);border-top:1px solid var(--border);
-  display:flex;
-  padding-bottom:env(safe-area-inset-bottom,0);
-}
-.nav-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  padding:10px 0;cursor:pointer;border:none;background:transparent;
-  color:var(--text3);transition:color .15s;font-family:inherit;
-}
-.nav-item.active{color:var(--blue)}
-.nav-item svg{width:20px;height:20px;margin-bottom:3px}
-.nav-label{font-size:10px;font-weight:500}
-
-/* ── MAIN ── */
-.main-content{
-  padding-top:56px;
-  padding-bottom:calc(60px + env(safe-area-inset-bottom,0));
-  min-height:100vh;
-}
-.page{display:none}.page.active{display:block}
-
-/* ── KANBAN ── */
-.kanban-scroll{
-  overflow-x:auto;padding:16px;
-  display:flex;gap:12px;
-  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
-  min-height:calc(100vh - 120px);
-}
-.kanban-scroll::-webkit-scrollbar{height:6px}
-.kanban-scroll::-webkit-scrollbar-track{background:transparent}
-.kanban-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-
-/* ── COLUMN ── */
-.col{
-  flex:0 0 268px;
-  display:flex;flex-direction:column;
+body{
   background:var(--bg);
-  border-radius:var(--radius-lg);
-  max-height:calc(100vh - 140px);
+  font-family:'Noto Sans TC',system-ui,sans-serif;
+  color:var(--text);min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
 }
-.col-header{
-  padding:10px 12px;
-  display:flex;align-items:center;gap:8px;
-  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
-  flex-shrink:0;
+
+/* ── NAV ── */
+.nav{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;
+  overflow-x:auto;scrollbar-width:none;
+  position:sticky;top:0;z-index:60;box-shadow:var(--shadow);
 }
-.col-accent-bar{
-  width:4px;height:100%;border-radius:2px;flex-shrink:0;
-  align-self:stretch;min-height:20px;
+.nav::-webkit-scrollbar{display:none;}
+.nav-brand{
+  font-size:14px;font-weight:600;color:var(--accent);
+  padding:14px 0;margin-right:18px;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
 }
-.col-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;flex:1}
-.col-badge{
-  font-size:11px;font-weight:600;
-  background:rgba(0,0,0,.08);
-  border-radius:10px;padding:2px 8px;
-  color:var(--text2);
+.nav-tab{
+  padding:14px 13px;font-size:13px;font-weight:500;
+  color:var(--text2);white-space:nowrap;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;
 }
-.col-body{
-  flex:1;overflow-y:auto;padding:0 8px 8px;
-  display:flex;flex-direction:column;gap:6px;
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.sync-pill{
+  margin-left:auto;display:flex;align-items:center;gap:5px;
+  font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;
+  padding:5px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);
 }
-.col-body::-webkit-scrollbar{width:4px}
-.col-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sdot{width:6px;height:6px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 2s infinite;}
+.sdot.syncing{background:#f59e0b;animation:none;}
+.sdot.err{background:#ef4444;animation:none;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── HEADER ── */
+.header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:16px 16px 12px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+.header h1{font-size:20px;font-weight:600;}
+.header .sub{font-size:12px;color:var(--text3);margin-top:3px;}
+.hbtns{display:flex;gap:8px;align-items:center;}
+.btn{
+  padding:7px 14px;font-size:12px;font-weight:500;border-radius:8px;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+  border:1px solid var(--border2);background:var(--surface);color:var(--text2);
+}
+.btn:hover{background:var(--surface2);}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn.pri:hover{background:#1d4ed8;}
+.btn:active{transform:scale(.97);}
+
+/* ── FILTER BAR ── */
+.fbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:9px 16px;display:flex;align-items:center;gap:7px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.fbar::-webkit-scrollbar{display:none;}
+.chip{
+  padding:5px 12px;font-size:12px;font-weight:500;border-radius:20px;
+  border:1px solid var(--border);background:var(--surface);color:var(--text2);
+  cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;flex-shrink:0;
+}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.chip:hover:not(.on){background:var(--surface2);}
+.sbox{
+  margin-left:auto;flex-shrink:0;
+  display:flex;align-items:center;gap:7px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 11px;
+}
+.sbox svg{width:13px;height:13px;color:var(--text3);flex-shrink:0;}
+.sbox input{
+  background:none;border:none;outline:none;
+  font-size:13px;color:var(--text);font-family:inherit;width:120px;
+}
+.sbox input::placeholder{color:var(--text3);}
+
+/* ── BOARD ── */
+.board-wrap{overflow-x:auto;padding:16px 16px 32px;}
+.board-wrap::-webkit-scrollbar{height:5px;}
+.board-wrap::-webkit-scrollbar-track{background:var(--border);border-radius:10px;}
+.board-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+.board{display:flex;gap:12px;align-items:flex-start;min-width:max-content;}
+
+.col{width:210px;flex-shrink:0;}
+.col-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-radius:9px;margin-bottom:9px;
+  border:1px solid transparent;
+}
+.col-hd-l{display:flex;align-items:center;gap:6px;}
+.cdot{width:7px;height:7px;border-radius:50%;}
+.cname{font-size:12px;font-weight:600;}
+.ccnt{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;background:rgba(0,0,0,.07);}
+.col-cards{display:flex;flex-direction:column;gap:7px;}
 
 /* ── CARD ── */
-.card{
-  background:var(--white);
-  border-radius:var(--radius);
+.kcard{
+  background:var(--surface);
   border:1px solid var(--border);
+  border-left:3px solid #ccc; /* overridden per stage */
+  border-radius:11px;
+  padding:11px 12px;
+  cursor:pointer;
   box-shadow:var(--shadow);
-  overflow:hidden;
-  transition:box-shadow .15s, transform .1s;
+  transition:box-shadow .15s,transform .15s,border-color .15s;
 }
-.card:active{transform:scale(.99);box-shadow:none}
+.kcard:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--border2);}
+.kcard:active{transform:scale(.97);}
 
-.card-main{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:10px 12px;cursor:pointer;
-}
+/* card layout: circle left + info right */
+.kcard-inner{display:flex;align-items:flex-start;gap:10px;}
 
-/* Number circle */
-.card-num-circle{
-  width:32px;height:32px;border-radius:50%;
-  background:var(--dark);color:#fff;
+/* Circle avatar showing 編號 */
+.knum-circle{
+  width:40px;height:40px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;font-family:'Inter',monospace;
-  flex-shrink:0;letter-spacing:0;
-  margin-top:1px;
+  font-size:12px;font-weight:600;flex-shrink:0;
+  font-family:'DM Mono',monospace;
+  border:2px solid;
 }
-.card-num-circle.no-num{background:var(--border2);color:var(--text2)}
-
-.card-body-text{flex:1;min-width:0}
-.card-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;word-break:break-all}
-.card-sub{font-size:11px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.card-phone-chip{font-size:10px;font-weight:600;color:var(--text2)}
-
-.card-arrow{
-  flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
-  color:var(--text3);margin-top:4px;
+.kcard-info{flex:1;min-width:0;}
+/* End of 產品 – main product label */
+.k-product{
+  font-size:13px;font-weight:600;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:3px;
 }
-.card-arrow svg{width:14px;height:14px}
-
-/* Timer */
-.card-timer{
-  font-size:11px;font-weight:600;font-family:'Inter',monospace;
-  padding:2px 7px;border-radius:20px;white-space:nowrap;
+/* 電話後3碼 */
+.k-phone{
+  font-size:16px;font-weight:600;
+  font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--text);
+  line-height:1;
 }
-.tw{background:var(--blue-bg);color:var(--blue)}
-.tr{background:var(--orange-bg);color:var(--orange)}
-.twarn{background:var(--red-bg);color:var(--red)}
+/* 送修者姓名 */
+.k-name{font-size:11px;color:var(--text3);margin-top:3px;}
 
-/* Tags row */
-.card-tags{display:flex;gap:4px;flex-wrap:wrap;padding:0 12px 8px;margin-top:-2px}
-.tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
-.tag-cancel{background:var(--red-bg);color:var(--red)}
-.tag-called{background:var(--green-bg);color:var(--green)}
-.tag-no-ans{background:var(--orange-bg);color:var(--orange)}
-.tag-ok{background:var(--green-bg);color:var(--green)}
-.tag-fail{background:var(--red-bg);color:var(--red)}
-.tag-pending-r{background:var(--purple-bg);color:var(--purple)}
-.tag-unsent{background:var(--gray-bg);color:var(--gray)}
-
-/* Note snippet */
-.card-snippet{
-  font-size:11px;color:var(--text2);
-  padding:0 12px 8px;margin-top:-2px;
-  line-height:1.5;
-  border-top:1px dashed var(--border);
-  padding-top:6px;
+.empty-col{
+  border:1.5px dashed var(--border2);border-radius:11px;
+  padding:20px 12px;text-align:center;font-size:12px;color:var(--text3);
 }
 
-/* Actions row */
-.card-actions{
-  display:flex;border-top:1px solid var(--border);
+/* ── MODAL ── */
+.moverlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(20,25,60,.45);backdrop-filter:blur(3px);
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:fdi .18s ease;
 }
-.card-action-btn{
-  flex:1;border:none;background:transparent;
-  padding:8px 6px;font-size:12px;font-weight:600;
-  cursor:pointer;font-family:inherit;color:var(--text2);
-  display:flex;align-items:center;justify-content:center;gap:4px;
-  transition:background .1s, color .1s;
-}
-.card-action-btn:hover{background:var(--bg)}
-.card-action-btn:active{background:var(--border)}
-.card-action-btn+.card-action-btn{border-left:1px solid var(--border)}
-.cab-blue{color:var(--blue)}
-.cab-orange{color:var(--orange)}
-.cab-green{color:var(--green)}
-.cab-red{color:var(--red)}
-.cab-purple{color:var(--purple)}
-.cab-dark{color:var(--dark)}
+@media(min-width:560px){.moverlay{align-items:center;padding:20px;}}
+@keyframes fdi{from{opacity:0}to{opacity:1}}
 
-/* Add card btn */
-.add-card-btn{
-  width:100%;border:1.5px dashed var(--border2);background:transparent;
-  border-radius:var(--radius);padding:9px;
-  font-size:12px;font-weight:500;color:var(--text3);
-  cursor:pointer;font-family:inherit;margin-top:2px;
-  transition:border-color .15s, color .15s;
-  display:flex;align-items:center;justify-content:center;gap:5px;
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  width:100%;max-height:92vh;overflow-y:auto;
+  animation:slu .22s cubic-bezier(.22,1,.36,1);
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
 }
-.add-card-btn:hover{border-color:var(--blue);color:var(--blue)}
+@media(min-width:560px){.modal{border-radius:16px;max-width:520px;max-height:88vh;}}
+@keyframes slu{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal::-webkit-scrollbar{width:4px;}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
 
-/* ── EXPANDED DETAIL ── */
-.card-detail{display:none;border-top:1px solid var(--border);background:var(--bg);padding:12px}
-.card-detail.open{display:block}
+.m-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:13px auto 0;}
+.m-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--surface);z-index:1;
+}
+.m-head-l{display:flex;align-items:center;gap:10px;}
+.m-num{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);}
+.m-title{font-size:15px;font-weight:600;line-height:1.3;}
+.mclose{
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text2);font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.m-body{padding:16px 18px 28px;}
 
-.form-row{margin-bottom:10px}
-.form-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.form-input,.form-select,.form-textarea{
-  width:100%;border:1px solid var(--border2);border-radius:var(--radius);
-  background:var(--white);padding:7px 10px;
-  font-size:13px;color:var(--text);font-family:inherit;
-  outline:none;-webkit-appearance:none;appearance:none;
-  transition:border-color .15s;
-}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,144,217,.1)}
-.form-textarea{resize:vertical;min-height:52px}
-.form-readonly{
-  background:var(--bg);color:var(--text2);font-size:12px;
-  padding:7px 10px;border-radius:var(--radius);
-  border:1px solid var(--border);line-height:1.5;word-break:break-all;
-}
-.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.form-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
+.ml{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.mv{font-size:13px;color:var(--text);}
+.mv.hero{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;}
+.mrow{margin-bottom:13px;}
+.mdiv{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
 
-.check-group{display:flex;flex-wrap:wrap;gap:5px}
-.check-pill{
-  display:flex;align-items:center;gap:4px;
-  background:var(--white);border:1px solid var(--border2);
-  border-radius:20px;padding:4px 10px;cursor:pointer;
-  font-size:11px;font-weight:500;user-select:none;transition:all .15s;
+.pill{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;}
+.pill-y{background:#ecfdf5;color:#059669;}
+.pill-n{background:#f1f5f9;color:#64748b;}
+
+.acc-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.acc-item{
+  font-size:11px;padding:4px 10px;border-radius:7px;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;transition:all .15s;user-select:none;
 }
-.check-pill input{width:12px;height:12px;accent-color:var(--blue)}
-.check-pill.on{border-color:var(--blue);background:var(--blue-bg);color:var(--blue)}
+.acc-item.on{background:var(--accent-bg);border-color:#bfdbfe;color:var(--accent);}
+
+.msel,.mta,.minput{
+  width:100%;padding:9px 11px;font-size:13px;
+  border:1px solid var(--border2);border-radius:8px;
+  background:var(--surface);color:var(--text);
+  font-family:inherit;margin-top:5px;outline:none;transition:border-color .15s;
+}
+.msel:focus,.mta:focus,.minput:focus{border-color:var(--accent);}
+.mta{resize:vertical;min-height:64px;}
+
+.save-btn{
+  width:100%;padding:12px;font-size:14px;font-weight:600;
+  background:var(--accent);color:#fff;border:none;border-radius:10px;
+  cursor:pointer;font-family:inherit;margin-top:14px;transition:all .15s;
+}
+.save-btn:hover{background:#1d4ed8;}
+.save-btn:active{transform:scale(.98);}
+.save-btn:disabled{background:#94a3b8;cursor:not-allowed;}
 
 /* ── TOAST ── */
 .toast{
-  position:fixed;bottom:calc(68px + env(safe-area-inset-bottom,0) + 10px);
-  left:50%;transform:translateX(-50%);
-  background:var(--dark);color:#fff;
-  padding:9px 18px;border-radius:20px;
-  font-size:12px;font-weight:500;z-index:999;
-  opacity:0;transition:opacity .25s;
-  pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1c1e2e;color:#fff;font-size:13px;font-weight:500;
+  padding:10px 20px;border-radius:20px;z-index:500;
+  opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;
 }
-.toast.show{opacity:1}
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .55s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.toast.show{opacity:1;}
 
-/* ── INTERVIEW ── */
-.inner-page{padding:16px}
-.page-heading{font-size:16px;font-weight:700;margin-bottom:4px}
-.page-sub{font-size:12px;color:var(--text2);margin-bottom:16px}
-.case-picker{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;scrollbar-width:none}
-.case-picker::-webkit-scrollbar{display:none}
-.case-chip{
-  flex:0 0 auto;background:var(--white);
-  border:1px solid var(--border2);border-radius:20px;
-  padding:6px 13px;font-size:12px;font-weight:500;
-  cursor:pointer;white-space:nowrap;color:var(--text2);
+/* ── LOADING BAR ── */
+.lbar{
+  position:fixed;top:0;left:0;right:0;height:3px;
+  background:var(--accent);z-index:999;
+  transform:scaleX(0);transform-origin:left;transition:transform .3s ease;
 }
-.case-chip.selected{background:var(--blue);border-color:var(--blue);color:#fff}
+.lbar.on{transform:scaleX(.75);}
+.lbar.done{transform:scaleX(1);opacity:0;transition:transform .2s,opacity .3s .1s;}
 
-.iv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
-.iv-q{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)}
-.pill-group{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.opt-pill{background:var(--bg);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s;font-weight:500}
-.opt-pill.selected{background:var(--blue);border-color:var(--blue);color:#fff}
-
-/* ── REPORT ── */
-.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
-.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;text-align:center;box-shadow:var(--shadow)}
-.stat-num{font-size:28px;font-weight:700;font-family:'Inter',monospace;color:var(--blue)}
-.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px;font-weight:500}
-.chart-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
-.chart-ttl{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)}
-.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.bar-lbl{font-size:11px;width:90px;text-align:right;color:var(--text2);flex-shrink:0;line-height:1.3}
-.bar-track{flex:1;background:var(--bg);border-radius:4px;height:14px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;background:var(--blue);transition:width .7s ease}
-.bar-val{font-size:11px;font-family:'Inter',monospace;color:var(--text2);width:20px}
-.word-cloud{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0}
-.word-pill{background:var(--blue-bg);color:var(--blue);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600}
-.word-pill.lg{font-size:15px;padding:5px 13px}
-.word-pill.sm{font-size:10px;padding:3px 8px;opacity:.65}
-.report-notes{background:var(--bg);border-radius:var(--radius);padding:10px}
-.note-item{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
-.note-idx{font-size:11px;font-weight:700;color:var(--blue);flex-shrink:0;margin-top:2px;font-family:'Inter',monospace}
-.note-edit{flex:1;background:transparent;border:none;font-size:12px;font-family:inherit;resize:none;color:var(--text);outline:none;min-height:32px}
-
-/* ── SETTINGS ── */
-.settings-block{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow)}
-.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
-.settings-row:last-child{border-bottom:none}
-.settings-lbl{font-size:13px;font-weight:600;color:var(--text)}
-.settings-desc{font-size:11px;color:var(--text2);margin-top:2px}
-.toggle{position:relative;width:42px;height:24px}
-.toggle input{opacity:0;width:0;height:0}
-.tg-slider{position:absolute;inset:0;background:var(--border2);border-radius:12px;cursor:pointer;transition:background .2s}
-.tg-slider::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.toggle input:checked+.tg-slider{background:var(--blue)}
-.toggle input:checked+.tg-slider::after{transform:translateX(18px)}
-.info-box{background:var(--bg);border-radius:var(--radius);padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.85;margin:0 12px 12px}
-.info-box b{color:var(--text);font-weight:600}
-
-@media(min-width:600px){
-  .stat-grid{grid-template-columns:repeat(3,1fr)}
-  .col{flex:0 0 282px}
-}
+/* stage palette */
+.sp0{--sc:#64748b;--sbg:#f1f5f9;--sbr:#e2e8f0;--sd:#94a3b8;}
+.sp1{--sc:#2563eb;--sbg:#eff4ff;--sbr:#bfdbfe;--sd:#3b82f6;}
+.sp2{--sc:#d97706;--sbg:#fffbeb;--sbr:#fde68a;--sd:#f59e0b;}
+.sp3{--sc:#7c3aed;--sbg:#f5f3ff;--sbr:#ddd6fe;--sd:#8b5cf6;}
+.sp4{--sc:#059669;--sbg:#ecfdf5;--sbr:#a7f3d0;--sd:#10b981;}
+.sp5{--sc:#db2777;--sbg:#fdf2f8;--sbr:#fbcfe8;--sd:#ec4899;}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="topbar-logo"><span>⚙</span> 小家電維修所</div>
-  <div class="topbar-divider"></div>
-  <div>
-    <div class="topbar-title" id="activityDate">載入中...</div>
-  </div>
-  <div class="topbar-spacer"></div>
-  <div class="topbar-stats" id="topStats"></div>
-  <button class="sync-btn" onclick="syncFromSheet()">
-    <span id="syncIcon">↺</span> 同步
-  </button>
-</div>
-
-<!-- MAIN -->
-<div class="main-content">
-
-  <!-- 登記頁 -->
-  <div class="page active" id="page-register">
-    <div class="kanban-scroll" id="kanbanScroll"></div>
-  </div>
-
-  <!-- 訪問頁 -->
-  <div class="page" id="page-interview">
-    <div class="inner-page">
-      <div class="page-heading">訪問記錄</div>
-      <div class="page-sub">選擇已報到的送修者進行訪問</div>
-      <div class="case-picker" id="casePicker"></div>
-      <div class="iv-card">
-        <div class="iv-q">📣 怎麼知道這個活動？</div>
-        <div class="pill-group" id="opts-q1">
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">Facebook</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">朋友介紹</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">里辦公室</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">傳單</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">Line群組</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">回頭客</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">其他</div>
-        </div>
-        <textarea class="form-textarea" placeholder="補充說明..." id="q1-note" rows="2" style="font-size:12px"></textarea>
-      </div>
-      <div class="iv-card">
-        <div class="iv-q">💡 對活動有什麼建議？</div>
-        <div class="pill-group" id="opts-q2">
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">場地更好</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">增加品項</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">更多場次</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">提早通知</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">加強宣傳</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">非常滿意</div>
-          <div class="opt-pill" onclick="this.classList.toggle('selected')">其他</div>
-        </div>
-        <textarea class="form-textarea" placeholder="詳細建議..." id="q2-note" rows="2" style="font-size:12px"></textarea>
-      </div>
-      <div class="iv-card">
-        <div class="iv-q">⭐ 整體滿意度</div>
-        <div class="pill-group" id="opts-q3">
-          <div class="opt-pill" onclick="setRating(1)">😞 1</div>
-          <div class="opt-pill" onclick="setRating(2)">😐 2</div>
-          <div class="opt-pill" onclick="setRating(3)">🙂 3</div>
-          <div class="opt-pill" onclick="setRating(4)">😊 4</div>
-          <div class="opt-pill" onclick="setRating(5)">🤩 5</div>
-        </div>
-      </div>
-      <button onclick="saveInterview()" style="width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:2px">
-        ✓ 儲存訪問記錄
-      </button>
-    </div>
-  </div>
-
-  <!-- 報告頁 -->
-  <div class="page" id="page-report">
-    <div class="inner-page">
-      <div class="page-heading">活動成果報告</div>
-      <div class="page-sub" id="reportDate"></div>
-      <div class="stat-grid" id="reportStats"></div>
-      <div class="chart-card"><div class="chart-ttl">🔧 維修品項分布</div><div id="repairChart"></div></div>
-      <div class="chart-card"><div class="chart-ttl">✅ 維修結果比例</div><div id="resultChart"></div></div>
-      <div class="chart-card"><div class="chart-ttl">💬 訪問關鍵字</div><div class="word-cloud" id="wordCloud"></div></div>
-      <div class="chart-card">
-        <div class="chart-ttl">📝 訪問節錄 <span style="font-weight:400;font-size:11px;color:var(--text2)">(可編輯)</span></div>
-        <div class="report-notes" id="reportNotes"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 設定頁 -->
-  <div class="page" id="page-settings">
-    <div class="inner-page">
-      <div class="page-heading">設定</div>
-      <div class="page-sub">功能與連線設定</div>
-      <div class="settings-block">
-        <div class="settings-row">
-          <div><div class="settings-lbl">訪問功能</div><div class="settings-desc">啟用志工訪問記錄頁面</div></div>
-          <label class="toggle"><input type="checkbox" id="toggle-interview" onchange="toggleTab('interview',this.checked)" checked><span class="tg-slider"></span></label>
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-lbl">報告功能</div><div class="settings-desc">啟用活動成果報告頁面</div></div>
-          <label class="toggle"><input type="checkbox" id="toggle-report" onchange="toggleTab('report',this.checked)" checked><span class="tg-slider"></span></label>
-        </div>
-      </div>
-      <div class="settings-block">
-        <div class="settings-row"><div><div class="settings-lbl">Google Sheet 連線</div><div class="settings-desc">Apps Script Web App URL</div></div></div>
-        <div style="padding:0 12px 12px">
-          <input class="form-input" id="sheetUrl" type="url" value="https://script.google.com/macros/s/AKfycby7VyDxyJq232guTyj7_HiKaQDg7wlVkqbG0jb4TYl6VIhgu2__ZSbQLFks5K3KIaCn/exec" style="font-size:12px">
-          <div class="info-box" style="margin:8px 0 0">
-            <b>list 分頁欄位對應</b><br>
-            D＝編號 ｜ F＝送修者 ｜ G＝電話 ｜ H＝電話後3碼<br>
-            M＝家電名稱 ｜ C＝分類（Kanban狀態）<br>
-            S＝維修結果 ｜ T＝維修結果說明 ｜ X＝零件費
-          </div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="saveSettings()" style="flex:1;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">💾 儲存</button>
-            <button onclick="syncFromSheet()" style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border2);border-radius:var(--radius);padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">↺ 立即同步</button>
-          </div>
-          <div id="lastSyncInfo" style="margin-top:8px;font-size:11px;color:var(--text2);text-align:center"></div>
-        </div>
-      </div>
-      <div class="settings-block">
-        <div class="settings-row">
-          <div><div class="settings-lbl">載入示範資料</div><div class="settings-desc">測試用，不影響 Sheet</div></div>
-          <button onclick="loadDemo()" style="background:var(--purple-bg);color:var(--purple);border:none;border-radius:var(--radius);padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">載入</button>
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-lbl">清除本地資料</div><div class="settings-desc">重置所有卡片（不影響 Sheet）</div></div>
-          <button onclick="clearData()" style="background:var(--red-bg);color:var(--red);border:none;border-radius:var(--radius);padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">清除</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <button class="nav-item active" onclick="switchPage('register',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    <span class="nav-label">登記</span>
-  </button>
-  <button class="nav-item" onclick="switchPage('interview',this)" id="nav-interview">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span class="nav-label">訪問</span>
-  </button>
-  <button class="nav-item" onclick="switchPage('report',this)" id="nav-report">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    <span class="nav-label">報告</span>
-  </button>
-  <button class="nav-item" onclick="switchPage('settings',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    <span class="nav-label">設定</span>
-  </button>
-</div>
-
+<div class="lbar" id="lbar"></div>
 <div class="toast" id="toast"></div>
 
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">🔧 小家電維修所</div>
+  <div class="nav-tab active">維修看板</div>
+  <div class="nav-tab">客戶管理</div>
+  <div class="nav-tab">報表統計</div>
+  <div class="sync-pill" id="sync-pill">
+    <div class="sdot" id="sdot"></div>
+    <span id="slbl">連線中…</span>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1 id="ttl">載入中…</h1>
+    <div class="sub" id="sub-lbl">正在連接 Google Sheets…</div>
+  </div>
+  <div class="hbtns">
+    <button class="btn" onclick="fetchData()">⟳ 重新整理</button>
+  </div>
+</div>
+
+<!-- FILTER -->
+<div class="fbar" id="fbar">
+  <button class="chip on" onclick="setFilter('all',this)">全部</button>
+  <!-- stage chips injected by JS -->
+  <div class="sbox">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="m11 11 3 3"/></svg>
+    <input type="search" id="q" placeholder="姓名、電話、編號…" autocomplete="off">
+  </div>
+</div>
+
+<!-- BOARD -->
+<div class="board-wrap">
+  <div class="board" id="board">
+    <div style="padding:40px 0;color:var(--text3);font-size:14px;">正在讀取資料…</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="moverlay" id="mov" style="display:none" onclick="closeBg(event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-head">
+      <div class="m-head-l">
+        <div id="m-circle" class="knum-circle" style="width:36px;height:36px;font-size:11px;"></div>
+        <div>
+          <div id="m-num" class="m-num"></div>
+          <div id="m-title" class="m-title"></div>
+        </div>
+      </div>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="m-body" id="m-body"></div>
+  </div>
+</div>
+
 <script>
-// ═══ CONSTANTS ═══
-const SHEET_URL_KEY='repairSheetUrl', DATA_KEY='repairCards', INTERVIEW_KEY='repairInterviews', SETTINGS_KEY='repairSettings';
+// ═══════════════════════════════════════════════════
+// ★ 設定區：填入你的 GAS Web App URL
+// ═══════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxREDKG37n6FACiFa3YsZa0giUDwkV1lRR_fpoi9YY7VJw0Y3vy8KfjV0Wp4hLu0Bc0/exec';
+// ═══════════════════════════════════════════════════
 
-const K2S={pending:'未報到',arrived:'已報到',repairing:'維修中',ready:'待領取',done:'已取件',transfer:'轉診'};
-const S2K={'未報到':'pending','已報到':'arrived','維修中':'repairing','待領取':'ready','已取件':'done','取消&無送修':'transfer','轉診':'transfer'};
+// 流程階段（對應 Google Sheet「流程階段」欄位的實際文字）
+const STAGES = [
+  { key:'未報到',        ci:0 },
+  { key:'已報到等待維修', ci:1 },
+  { key:'維修中',        ci:2 },
+  { key:'待領取',        ci:3 },
+  { key:'已領取',        ci:4 },
+  { key:'轉診或待確認',  ci:5 },
+];
+const STAGE_KEYS = STAGES.map(s=>s.key);
 
-const COL_COLORS={pending:'var(--col-pending)',arrived:'var(--col-arrived)',repairing:'var(--col-repairing)',ready:'var(--col-ready)',done:'var(--col-done)',transfer:'var(--col-transfer)'};
-
-const COLUMNS=[
-  {id:'pending',   label:'未報到',     color:'var(--col-pending)'},
-  {id:'arrived',   label:'等待維修',    color:'var(--col-arrived)'},
-  {id:'repairing', label:'維修中',      color:'var(--col-repairing)'},
-  {id:'ready',     label:'待領取',      color:'var(--col-ready)'},
-  {id:'done',      label:'已領取',      color:'var(--col-done)'},
-  {id:'transfer',  label:'轉診/待確認', color:'var(--col-transfer)'},
+// Stage visual palette (light theme)
+const PALETTE = [
+  {sc:'#64748b',sbg:'#f1f5f9',sbr:'#e2e8f0',sd:'#94a3b8'},
+  {sc:'#2563eb',sbg:'#eff4ff',sbr:'#bfdbfe',sd:'#3b82f6'},
+  {sc:'#d97706',sbg:'#fffbeb',sbr:'#fde68a',sd:'#f59e0b'},
+  {sc:'#7c3aed',sbg:'#f5f3ff',sbr:'#ddd6fe',sd:'#8b5cf6'},
+  {sc:'#059669',sbg:'#ecfdf5',sbr:'#a7f3d0',sd:'#10b981'},
+  {sc:'#db2777',sbg:'#fdf2f8',sbr:'#fbcfe8',sd:'#ec4899'},
 ];
 
-const ACCESSORIES=['電源線','說明書','遙控器','濾網','刀頭','配件盒','其他'];
-const PENDING_TAGS=['取消','電話已通知','未連繫上'];
-const DROPDOWN={
-  bigCat:['廚房家電','生活家電','美容美體家電','照明用具','影視娛樂','兒童玩具','其他'],
-  items:{'廚房家電':['加熱鍋具','電鍋','果汁機/調理機','咖啡機','烤箱','電熱水壺','其他'],'生活家電':['電風扇','除濕機','空氣清淨機','電暖器','其他'],'美容美體家電':['吹風機','電熨斗','電捲棒','電動刮鬍刀','其他'],'照明用具':['檯燈','露營燈','其他'],'影視娛樂':['收音機/錄音機','有線喇叭','其他'],'兒童玩具':['車類玩具','其他'],'其他':['其他']},
-  repairResult:['OK_成功','NO_失敗','未送修','Pending'],
-  repairResultDesc:{'OK_成功':['OK 無更換零件: 清潔/重新組裝或固定','OK 更換零件','OK 沒有解釋說明'],'NO_失敗':['No 沒有零件','No 無法判別故障原因','No 其他'],'未送修':['取消送修','客人未到'],'Pending':['待確認','待零件']}
-};
+// Avatar colors per 編號 hash
+const AV_COLORS = ['#2563eb','#d97706','#059669','#7c3aed','#db2777','#0891b2','#65a30d','#9a3412'];
 
-let cards=[], interviews={}, settings={showInterview:true,showReport:true};
-let currentInterviewId=null, timerInterval=null, currentRating=0;
+let allCards  = [];
+let filterKey = 'all';
+let searchQ   = '';
+let refreshTimer = null;
 
-// ═══ INIT ═══
-function init(){
-  try{const s=localStorage.getItem(SETTINGS_KEY);if(s)settings=JSON.parse(s);}catch(e){}
-  try{const d=localStorage.getItem(DATA_KEY);if(d)cards=JSON.parse(d);}catch(e){}
-  try{const v=localStorage.getItem(INTERVIEW_KEY);if(v)interviews=JSON.parse(v);}catch(e){}
-  const su=localStorage.getItem(SHEET_URL_KEY);
-  if(su)document.getElementById('sheetUrl').value=su;
-  document.getElementById('toggle-interview').checked=settings.showInterview!==false;
-  document.getElementById('toggle-report').checked=settings.showReport!==false;
-  document.getElementById('activityDate').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
-  document.getElementById('reportDate').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
-  renderKanban(); renderCasePicker(); updateReport(); applySettings();
+// ─── map from GAS getData() response field names ───
+// GAS returns: { id, name, phone, regNum, bigCat, item, subItem, itemNote,
+//   endOfProduct, brand, model, opened, accessories, extraNote,
+//   repairResult, repairResultDesc, repairNote, repairman, partCost, status }
+//
+// 實際 Sheet 欄位：
+//   日期|流程階段|備註標籤|編號|送修者姓名|送件者電話|電話後3碼|產品分類|
+//   產品品項|產品細項|產品備註|End of 產品|品牌|型號|配件|出廠日期|
+//   產品價格|故障說明|維修_結果分類|維修_結果說明|維修_補充備註|
+//   維修者|零件費|隨喜費|減碳貢獻
+//
+// GAS getData() 回傳欄位對應（依照你提供的 GAS 程式碼）：
+//   status        ← 分類 (X欄) → 但我們的 Kanban 用「流程階段」
+//   NOTE: GAS 原本的 getData 讀的是舊欄位，需要在下方做欄位映射調整
+//
+// ★ 由於 GAS getData() 是用 header 名稱動態找欄位，
+//   實際上只要 GAS 的 col("欄位名") 有對應到 Sheet 的欄位名稱就會正確取得。
+//   我們在前端用以下對應來使用 GAS 回傳的資料：
+
+function mapCard(raw) {
+  // raw 是 GAS getData() 回傳的每一筆物件
+  // 依照你的 GAS script getData() 的 map 函數欄位對應：
+  //   raw.id          = 編號
+  //   raw.name        = 姓名  (GAS裡是"姓名", Sheet是"送修者姓名" → GAS需更新)
+  //   raw.phone       = 電話  (GAS裡是"電話", Sheet是"送件者電話")
+  //   raw.status      = 分類  → 但Kanban用「流程階段」(stage)
+  //   raw.endOfProduct = End of 產品
+  //
+  // ★ 因為 GAS col() 是依 header 名稱搜尋，
+  //   如果 Sheet 的 header 是「送修者姓名」但 GAS 找「姓名」→ 找不到
+  //   前端在此做容錯，同時接受舊欄位名與新欄位名。
+
+  return {
+    // 識別
+    id:         String(raw.id          || raw['編號']        || ''),
+    // 卡片顯示三行
+    endOfProduct: raw.endOfProduct     || raw['End of 產品']  || raw.item || '',
+    phone3:     raw.phone3             || raw['電話後3碼']    || extractPhone3(String(raw.phone||'')),
+    name:       raw.name               || raw['送修者姓名']   || raw['姓名'] || '',
+    // 完整電話（撥打用）
+    phone:      String(raw.phone       || raw['送件者電話']   || ''),
+    // 掛號
+    regNum:     raw.regNum             || raw['掛號號碼']     || raw.id || '',
+    // 流程階段 → Kanban 欄位
+    stage:      raw.stage              || raw['流程階段']     || raw.status || '未報到',
+    // 備註標籤
+    noteTag:    raw.noteTag            || raw['備註標籤']     || '',
+    // 產品資訊
+    bigCat:     raw.bigCat             || raw['家電大分類']   || raw['產品分類'] || '',
+    item:       raw.item               || raw['產品品項']     || '',
+    subItem:    raw.subItem            || raw['產品細項']     || '',
+    itemNote:   raw.itemNote           || raw['產品備註']     || raw['備註說明'] || '',
+    brand:      raw.brand              || raw['品牌']         || '',
+    model:      raw.model              || raw['型號']         || '',
+    accessories:raw.accessories        || raw['配件']         || '',
+    mfgDate:    raw.mfgDate            || raw['出廠日期']     || '',
+    price:      raw.price              || raw['產品價格']     || '',
+    faultDesc:  raw.faultDesc          || raw['故障說明']     || '',
+    opened:     raw.opened             || raw['是否拆過']     || '',
+    extraNote:  raw.extraNote          || raw['其他備註']     || '',
+    // 維修
+    repairResult:     raw.repairResult     || raw['維修_結果分類']  || raw['維修結果']     || '',
+    repairResultDesc: raw.repairResultDesc || raw['維修_結果說明']  || raw['維修結果說明']  || '',
+    repairNote:       raw.repairNote       || raw['維修_補充備註']  || raw['當天修理狀況']  || '',
+    repairman:        raw.repairman        || raw['維修者']        || '',
+    partCost:         raw.partCost         || raw['零件費']        || '',
+    donationFee:      raw.donationFee      || raw['隨喜費']        || '',
+    ecoContrib:       raw.ecoContrib       || raw['減碳貢獻']      || '',
+  };
 }
 
-// ═══ JSONP ═══
-let _ci=0;
-function jsonpReq(url){
-  return new Promise((res,rej)=>{
-    const cb='_cb'+(++_ci);
-    const tid=setTimeout(()=>{delete window[cb];document.getElementById('_sc'+cb)?.remove();rej(new Error('timeout'));},12000);
-    window[cb]=function(d){clearTimeout(tid);delete window[cb];document.getElementById('_sc'+cb)?.remove();res(d);};
-    const sc=document.createElement('script');
-    sc.id='_sc'+cb;
-    sc.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
-    sc.onerror=()=>{clearTimeout(tid);delete window[cb];sc.remove();rej(new Error('load error'));};
-    document.head.appendChild(sc);
-  });
+function extractPhone3(phone){
+  if(!phone)return'';
+  const digits=phone.replace(/\D/g,'');
+  return digits.length>=3?digits.slice(-3):digits;
 }
 
-// ═══ SYNC ═══
-async function syncFromSheet(){
-  const url=document.getElementById('sheetUrl').value.trim();
-  if(!url){showToast('請先設定 Google Sheet URL');return;}
-  const icon=document.getElementById('syncIcon');
-  icon.innerHTML='<span class="spinner"></span>';
-  try{
-    const r=await jsonpReq(url+'?action=get');
-    if(r&&Array.isArray(r.data)){
-      mergeSheetData(r.data);
-      renderKanban();renderCasePicker();updateReport();
-      showToast('✓ 同步完成，共 '+r.data.length+' 筆');
-      setLastSync(true,r.data.length);
-    }else{showToast('⚠ 資料格式錯誤');setLastSync(false,0);}
-  }catch(e){showToast('⚠ 連線失敗：'+e.message);setLastSync(false,0);}
-  icon.textContent='↺';
-}
+// ── JSONP fetch via GAS ──
+function fetchData(){
+  setSyncState('syncing','同步中…');
+  setLBar(true);
+  const cbName='_gas_cb_'+Date.now();
+  const script=document.createElement('script');
+  script.src=GAS_URL+'?action=get&callback='+cbName+'&t='+Date.now();
 
-function mergeSheetData(rows){
-  rows.forEach(row=>{
-    const sid=String(row.id||'').trim();if(!sid)return;
-    const ex=cards.find(c=>String(c.id)===sid);
-    if(ex){
-      if(row.name)ex.name=row.name;
-      if(row.phone)ex.phone=String(row.phone);
-      if(row.phoneLast3)ex.phoneLast3=String(row.phoneLast3);
-      if(row.itemName)ex.itemName=row.itemName;
-      if(row.endOfProduct)ex.endOfProduct=row.endOfProduct;
-      if(row.bigCat)ex.bigCat=row.bigCat;
-      if(row.item)ex.item=row.item;
-      if(row.subItem)ex.subItem=row.subItem;
-      if(row.itemNote)ex.itemNote=row.itemNote;
-      if(row.brand)ex.brand=row.brand;
-      if(row.model)ex.model=row.model;
-      if(row.faultNote)ex.faultNote=row.faultNote;
-      if(row.extraNote)ex.extraNote=row.extraNote;
-      if(!ex.repairResult&&row.repairResult)ex.repairResult=row.repairResult;
-      if(!ex.repairResultDesc&&row.repairResultDesc)ex.repairResultDesc=row.repairResultDesc;
-      if(!ex.repairSituation&&row.repairSituation)ex.repairSituation=row.repairSituation;
-      if(!ex.repairman&&row.repairman)ex.repairman=row.repairman;
-      if(!ex.partCost&&row.partCost)ex.partCost=row.partCost;
-      if(ex.status==='pending'&&row.status)ex.status=row.status;
-    }else{
-      cards.push({id:sid,name:row.name||'',phone:String(row.phone||''),phoneLast3:String(row.phoneLast3||''),itemName:row.itemName||'',endOfProduct:row.endOfProduct||'',bigCat:row.bigCat||'',item:row.item||'',subItem:row.subItem||'',itemNote:row.itemNote||'',brand:row.brand||'',model:row.model||'',faultNote:row.faultNote||'',extraNote:row.extraNote||'',repairResult:row.repairResult||'',repairResultDesc:row.repairResultDesc||'',repairSituation:row.repairSituation||'',repairman:row.repairman||'',partCost:row.partCost||'',status:row.status||'pending',tags:[],accessories:[],notifyTags:[],regNum:'',arrivedAt:null,repairStart:null,repairEnd:null});
+  let done=false;
+  window[cbName]=function(resp){
+    done=true;
+    document.head.removeChild(script);
+    delete window[cbName];
+    if(resp&&resp.data&&resp.data.length>0){
+      allCards=resp.data.map(mapCard);
+      render();
+      const now=new Date();
+      const hm=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+      setSyncState('ok','上次同步 '+hm);
+      document.getElementById('sub-lbl').textContent='資料來源：Google Sheets · 共 '+allCards.length+' 筆工單';
+    } else if(resp&&resp.error){
+      setSyncState('err','GAS 錯誤：'+resp.error);
+    } else {
+      setSyncState('err','資料為空');
     }
+    setLBar(false);
+  };
+
+  script.onerror=function(){
+    if(!done){
+      done=true;
+      try{document.head.removeChild(script);}catch(e){}
+      delete window[cbName];
+      setSyncState('err','連線失敗 – 請確認 GAS_URL 設定');
+      setLBar(false);
+      showToast('⚠ 無法連線至 Google Sheets，請確認 GAS_URL');
+      loadDemo();
+    }
+  };
+
+  setTimeout(function(){
+    if(!done){script.onerror();}
+  },12000);
+
+  document.head.appendChild(script);
+}
+
+// ── JSONP update via GAS ──
+function gasUpdate(params, onOk, onErr){
+  const cbName='_gas_upd_'+Date.now();
+  const qs=Object.entries(params).map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
+  const script=document.createElement('script');
+  script.src=GAS_URL+'?action=update&callback='+cbName+'&'+qs;
+
+  let done=false;
+  window[cbName]=function(resp){
+    done=true;
+    try{document.head.removeChild(script);}catch(e){}
+    delete window[cbName];
+    if(resp&&resp.result==='success') onOk&&onOk(resp);
+    else onErr&&onErr(resp);
+  };
+  script.onerror=function(){
+    if(!done){done=true;try{document.head.removeChild(script);}catch(e){}delete window[cbName];onErr&&onErr();}
+  };
+  setTimeout(function(){if(!done)script.onerror();},10000);
+  document.head.appendChild(script);
+}
+
+// ── RENDER ──
+function stageInfo(key){
+  const idx=STAGES.findIndex(s=>s.key===key);
+  return {idx:idx<0?0:idx, p:PALETTE[idx<0?0:idx]};
+}
+
+function avColor(id){
+  let h=0;for(let i=0;i<String(id).length;i++)h=(h*31+String(id).charCodeAt(i))|0;
+  return AV_COLORS[Math.abs(h)%AV_COLORS.length];
+}
+
+function render(){
+  const q=searchQ.toLowerCase();
+  const filtered=allCards.filter(c=>{
+    if(filterKey!=='all'&&c.stage!==filterKey)return false;
+    if(q&&!(c.name.toLowerCase().includes(q)||c.phone.includes(q)||c.phone3.includes(q)||String(c.id).includes(q)||c.endOfProduct.toLowerCase().includes(q)))return false;
+    return true;
   });
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-}
 
-function pushToSheet(card){
-  const url=document.getElementById('sheetUrl').value.trim();
-  if(!url||!card.id)return;
-  const p=new URLSearchParams({action:'update',id:String(card.id),status:K2S[card.status]||card.status||'',bigCat:card.bigCat||'',item:card.item||'',subItem:card.subItem||'',itemNote:card.itemNote||'',brand:card.brand||'',model:card.model||'',repairResult:card.repairResult||'',repairResultDesc:card.repairResultDesc||'',repairSituation:card.repairSituation||'',repairman:card.repairman||'',extraNote:card.extraNote||'',partCost:card.partCost||''});
-  jsonpReq(url+'?'+p.toString())
-    .then(r=>{if(r&&r.result==='success')showToast('✓ 已更新至 Google Sheet');else if(r&&r.result==='not_found')showToast('⚠ Sheet 找不到編號 '+card.id);})
-    .catch(()=>showToast('⚠ 同步失敗，已暫存本地'));
-}
+  document.getElementById('ttl').textContent=filtered.length+' 筆維修工單';
 
-function setLastSync(ok,n){
-  const el=document.getElementById('lastSyncInfo');if(!el)return;
-  const t=new Date().toLocaleTimeString('zh-TW');
-  el.textContent=ok?'✓ 上次同步：'+t+'，共 '+n+' 筆':'⚠ 同步失敗 '+t;
-  el.style.color=ok?'var(--green)':'var(--red)';
-}
-
-// ═══ RENDER KANBAN ═══
-function renderKanban(){
-  const scroll=document.getElementById('kanbanScroll');
-  scroll.innerHTML='';
-  COLUMNS.forEach(col=>{
-    const cc=cards.filter(c=>c.status===col.id);
-    const el=document.createElement('div');
-    el.className='col';el.id='col-'+col.id;
-    el.innerHTML=
-      '<div class="col-header" style="background:'+col.color+'15;border-bottom:2px solid '+col.color+'">'+
-        '<div class="col-accent-bar" style="background:'+col.color+'"></div>'+
-        '<span class="col-label" style="color:'+col.color+'">'+col.label+'</span>'+
-        '<span class="col-badge">'+cc.length+'</span>'+
-      '</div>'+
-      '<div class="col-body" id="body-'+col.id+'">'+
-        cc.map(c=>buildCard(c,col.id)).join('')+
-        (col.id==='pending'?'<button class="add-card-btn" onclick="openAddCard()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 新增掛號</button>':'')+
-      '</div>';
-    scroll.appendChild(el);
-  });
-  updateTopStats();
-  startTimers();
-}
-
-function buildCard(c,colId){
-  const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const numLabel=c.regNum||c.id;
-  const numShort=String(numLabel).length>4?String(numLabel).slice(-4):String(numLabel);
-  const hasNum=!!(c.regNum);
-
-  // Result tag
-  const resCls=r=>r.startsWith('OK')?'tag-ok':r==='Pending'?'tag-pending-r':r==='未送修'?'tag-unsent':'tag-fail';
-  const resTag=c.repairResult?'<span class="tag '+resCls(c.repairResult)+'">'+e(c.repairResult)+'</span>':'';
-
-  // Notify tags
-  const nTags=(c.tags||[]).map(t=>{
-    const cls=t==='取消'?'tag-cancel':t==='電話已通知'?'tag-called':'tag-no-ans';
-    return '<span class="tag '+cls+'">'+e(t)+'</span>';
-  }).join('');
-
-  // Timer
-  let timerHtml='';
-  if(colId==='arrived')   timerHtml='<span class="card-timer tw" id="timer-'+c.id+'">00:00</span>';
-  if(colId==='repairing') timerHtml='<span class="card-timer tr" id="timer-'+c.id+'">00:00</span>';
-
-  // Subtitle line
-  let subLine='';
-  if(colId==='pending'){
-    subLine='<span class="card-phone-chip">'+e(c.name)+'</span>';
-    if(c.phoneLast3||(c.phone&&c.phone.length>=3)) subLine+='<span style="color:var(--text3)">·</span><span class="card-phone-chip">···'+e(c.phoneLast3||(c.phone?c.phone.slice(-3):''))+'</span>';
-  } else {
-    if(c.brand) subLine+='<span class="card-phone-chip">'+e(c.brand)+'</span>';
-    if(c.model) subLine+='<span style="color:var(--text3)">·</span><span class="card-phone-chip">'+e(c.model.slice(0,12))+'</span>';
-  }
-
-  const hasTags=(c.tags||[]).length>0||!!c.repairResult||(c.notifyTags||[]).length>0;
-  const hasSnippet=(colId==='arrived'||colId==='repairing')&&c.faultNote;
-
-  const actions=buildActions(c,colId);
-  const detail=buildDetail(c,colId);
-
-  return '<div class="card" id="card-'+c.id+'">'+
-    '<div class="card-main" onclick="toggleCard(\''+c.id+'\')">'+
-      '<div class="card-num-circle'+(hasNum?'':' no-num')+'">'+e(numShort)+'</div>'+
-      '<div class="card-body-text">'+
-        '<div class="card-title">'+e(c.itemName||'未填寫品項')+'</div>'+
-        (subLine?'<div class="card-sub">'+subLine+'</div>':'')+
-      '</div>'+
-      timerHtml+
-      '<div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>'+
-    '</div>'+
-    (hasTags?'<div class="card-tags">'+nTags+(c.notifyTags||[]).map(t=>'<span class="tag '+(t==='電話已通知'?'tag-called':'tag-no-ans')+'">'+e(t)+'</span>').join('')+resTag+'</div>':'')+
-    (hasSnippet?'<div class="card-snippet">'+e(c.faultNote.slice(0,60))+'</div>':'')+
-    '<div class="card-detail" id="detail-'+c.id+'">'+detail+'</div>'+
-    (actions?'<div class="card-actions">'+actions+'</div>':'')+
-  '</div>';
-}
-
-function buildActions(c,colId){
-  if(colId==='arrived')
-    return '<button class="card-action-btn cab-blue" onclick="moveCard(\''+c.id+'\',\'repairing\',event)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 開始維修</button>'+
-           '<button class="card-action-btn cab-red" onclick="moveCard(\''+c.id+'\',\'transfer\',event)">↗ 轉診</button>';
-  if(colId==='repairing')
-    return '<button class="card-action-btn cab-green" onclick="moveCard(\''+c.id+'\',\'ready\',event)">✓ 維修完成</button>'+
-           '<button class="card-action-btn cab-red" onclick="moveCard(\''+c.id+'\',\'transfer\',event)">↗ 轉診</button>';
-  if(colId==='ready')
-    return '<button class="card-action-btn cab-blue" onclick="callPhone(\''+c.id+'\',event)">📞 撥打電話</button>'+
-           '<button class="card-action-btn cab-dark" onclick="moveCard(\''+c.id+'\',\'done\',event)">✓ 已領取</button>';
-  return '';
-}
-
-function buildDetail(c,colId){
-  const e=s=>(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-  const id=c.id;
-  const sel=(arr,v)=>arr.map(x=>'<option'+(x===v?' selected':'')+'>'+e(x)+'</option>').join('');
-  const itemArr=DROPDOWN.items[c.bigCat]||DROPDOWN.items['其他']||['其他'];
-  const descArr=DROPDOWN.repairResultDesc[c.repairResult]||['其他'];
-
-  const tagRow=PENDING_TAGS.map(t=>'<label class="check-pill '+((c.tags||[]).includes(t)?'on':'')+'"><input type="checkbox"'+((c.tags||[]).includes(t)?' checked':'')+' onchange="toggleTag(\''+id+'\',\''+t+'\',this.checked)"> '+t+'</label>').join('');
-  const accRow=ACCESSORIES.map(a=>'<label class="check-pill '+((c.accessories||[]).includes(a)?'on':'')+'"><input type="checkbox"'+((c.accessories||[]).includes(a)?' checked':'')+' onchange="toggleAcc(\''+id+'\',\''+a+'\',this.checked)"> '+a+'</label>').join('');
-
-  let extra='';
-  if(['repairing','ready','done','transfer'].includes(colId)){
-    extra='<div class="form-divider"></div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-        '<div class="form-row"><div class="form-label">維修結果</div><select class="form-select" onchange="updateField(\''+id+'\',\'repairResult\',this.value)"><option value="">請選擇...</option>'+sel(DROPDOWN.repairResult,c.repairResult)+'</select></div>'+
-        '<div class="form-row"><div class="form-label">結果說明</div><select class="form-select" onchange="updateField(\''+id+'\',\'repairResultDesc\',this.value)"><option value="">請選擇...</option>'+sel(descArr,c.repairResultDesc)+'</select></div>'+
-      '</div>'+
-      '<div class="form-row"><div class="form-label">當天修理狀況</div><textarea class="form-textarea" onblur="updateField(\''+id+'\',\'repairSituation\',this.value)">'+e(c.repairSituation)+'</textarea></div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-        '<div class="form-row"><div class="form-label">維修者</div><input class="form-input" type="text" value="'+e(c.repairman)+'" placeholder="姓名" onblur="updateField(\''+id+'\',\'repairman\',this.value)"></div>'+
-        '<div class="form-row"><div class="form-label">零件費 (元)</div><input class="form-input" type="number" value="'+e(c.partCost)+'" placeholder="0" onblur="updateField(\''+id+'\',\'partCost\',this.value)"></div>'+
-      '</div>';
-  }
-
-  return '<div class="form-row"><div class="form-label">掛號號碼</div><input class="form-input" type="text" value="'+e(c.regNum)+'" placeholder="輸入號碼後自動報到" onblur="updateRegNum(\''+id+'\',this.value)"></div>'+
-    '<div class="form-row"><div class="form-label">備註標籤</div><div class="check-group">'+tagRow+'</div></div>'+
-    '<div class="form-divider"></div>'+
-    '<div class="form-row"><div class="form-label">送修者姓名</div><input class="form-input" type="text" value="'+e(c.name)+'" onblur="updateField(\''+id+'\',\'name\',this.value)"></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-      '<div class="form-row"><div class="form-label">完整電話</div><input class="form-input" type="tel" value="'+e(c.phone)+'" onblur="updateField(\''+id+'\',\'phone\',this.value)"></div>'+
-      '<div class="form-row"><div class="form-label">電話後3碼</div><div class="form-readonly">'+e(c.phoneLast3||(c.phone?c.phone.slice(-3):'—'))+'</div></div>'+
-    '</div>'+
-    '<div class="form-divider"></div>'+
-    '<div class="form-row"><div class="form-label">家電大分類</div><select class="form-select" onchange="updateCatField(\''+id+'\',\'bigCat\',this.value)"><option value="">請選擇...</option>'+sel(DROPDOWN.bigCat,c.bigCat)+'</select></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-      '<div class="form-row"><div class="form-label">產品品項</div><select class="form-select" onchange="updateCatField(\''+id+'\',\'item\',this.value)"><option value="">請選擇...</option>'+sel(itemArr,c.item)+'</select></div>'+
-      '<div class="form-row"><div class="form-label">產品細項</div><input class="form-input" type="text" value="'+e(c.subItem)+'" onblur="updateField(\''+id+'\',\'subItem\',this.value)"></div>'+
-    '</div>'+
-    '<div class="form-row"><div class="form-label">備註說明</div><input class="form-input" type="text" value="'+e(c.itemNote)+'" onblur="updateField(\''+id+'\',\'itemNote\',this.value)"></div>'+
-    '<div class="form-row"><div class="form-label">End of 產品（唯讀）</div><div class="form-readonly">'+e(c.endOfProduct||'—')+'</div></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-      '<div class="form-row"><div class="form-label">品牌</div><input class="form-input" type="text" value="'+e(c.brand)+'" onblur="updateField(\''+id+'\',\'brand\',this.value)"></div>'+
-      '<div class="form-row"><div class="form-label">型號</div><input class="form-input" type="text" value="'+e(c.model)+'" onblur="updateField(\''+id+'\',\'model\',this.value)"></div>'+
-    '</div>'+
-    '<div class="form-row"><div class="form-label">配件</div><div class="check-group">'+accRow+'</div></div>'+
-    '<div class="form-row"><div class="form-label">故障說明（原始）</div><div class="form-readonly" style="font-size:11px;line-height:1.6">'+e(c.faultNote||'—')+'</div></div>'+
-    '<div class="form-row"><div class="form-label">其他備註</div><textarea class="form-textarea" onblur="updateField(\''+id+'\',\'extraNote\',this.value)">'+e(c.extraNote)+'</textarea></div>'+
-    extra;
-}
-
-// ═══ INTERACTIONS ═══
-function toggleCard(id){
-  const d=document.getElementById('detail-'+id);
-  if(d)d.classList.toggle('open');
-}
-
-function moveCard(id,newSt,evt){
-  if(evt)evt.stopPropagation();
-  const card=cards.find(c=>c.id===id);if(!card)return;
-  card.status=newSt;
-  if(newSt==='arrived'&&!card.arrivedAt)card.arrivedAt=Date.now();
-  if(newSt==='repairing'&&!card.repairStart)card.repairStart=Date.now();
-  if(newSt==='ready')card.repairEnd=Date.now();
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-  renderKanban();renderCasePicker();updateReport();pushToSheet(card);
-}
-
-function callPhone(id,evt){
-  if(evt)evt.stopPropagation();
-  const c=cards.find(c=>c.id===id);
-  if(!c||!c.phone){showToast('無電話資料');return;}
-  window.location.href='tel:'+c.phone;
-}
-
-function updateField(id,field,value){
-  const card=cards.find(c=>c.id===id);
-  if(!card||card[field]===value)return;
-  card[field]=value;
-  if(field==='phone')card.phoneLast3=value.slice(-3);
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-  pushToSheet(card);
-  refreshCol(card.status);
-}
-
-function updateCatField(id,field,value){
-  const card=cards.find(c=>c.id===id);if(!card)return;
-  card[field]=value;
-  if(field==='bigCat'){card.item='';card.subItem='';}
-  if(field==='item'){card.subItem='';card.itemName=value;}
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-  pushToSheet(card);
-}
-
-function updateRegNum(id,val){
-  const card=cards.find(c=>c.id===id);if(!card||!val||card.regNum===val)return;
-  card.regNum=val;
-  if(card.status==='pending'){
-    card.status='arrived';if(!card.arrivedAt)card.arrivedAt=Date.now();
-    localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-    renderKanban();pushToSheet(card);showToast('✓ 已報到 → 等待維修');return;
-  }
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));pushToSheet(card);
-}
-
-function toggleTag(id,tag,checked){
-  const card=cards.find(c=>c.id===id);if(!card)return;
-  if(!card.tags)card.tags=[];
-  if(checked){if(!card.tags.includes(tag))card.tags.push(tag);}
-  else card.tags=card.tags.filter(t=>t!==tag);
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-}
-
-function toggleAcc(id,acc,checked){
-  const card=cards.find(c=>c.id===id);if(!card)return;
-  if(!card.accessories)card.accessories=[];
-  if(checked){if(!card.accessories.includes(acc))card.accessories.push(acc);}
-  else card.accessories=card.accessories.filter(a=>a!==acc);
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-}
-
-function refreshCol(status){
-  const body=document.getElementById('body-'+status);
-  const cnt =document.getElementById('cnt-' +status);
-  if(!body)return;
-  const cc=cards.filter(c=>c.status===status);
-  body.innerHTML=cc.map(c=>buildCard(c,status)).join('')+
-    (status==='pending'?'<button class="add-card-btn" onclick="openAddCard()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 新增掛號</button>':'');
-  if(cnt)cnt.textContent=cc.length;
-  startTimers();
-}
-
-function updateTopStats(){
-  const total=cards.length;
-  const repairing=cards.filter(c=>c.status==='repairing').length;
-  const ready=cards.filter(c=>c.status==='ready').length;
-  const done=cards.filter(c=>c.status==='done').length;
-  document.getElementById('topStats').innerHTML=
-    '<div class="stat-pill"><div class="dot" style="background:var(--col-repairing)"></div>維修中 '+repairing+'</div>'+
-    '<div class="stat-pill"><div class="dot" style="background:var(--col-ready)"></div>待領取 '+ready+'</div>'+
-    '<div class="stat-pill"><div class="dot" style="background:var(--col-done)"></div>已領取 '+done+'/'+total+'</div>';
-}
-
-function startTimers(){
-  if(timerInterval)clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{
-    cards.forEach(c=>{
-      const el=document.getElementById('timer-'+c.id);if(!el)return;
-      const start=c.status==='repairing'?c.repairStart:c.arrivedAt;if(!start)return;
-      const s=Math.floor((Date.now()-start)/1000);
-      const mm=String(Math.floor(s/60)).padStart(2,'0');
-      const ss=String(s%60).padStart(2,'0');
-      el.textContent=mm+':'+ss;
-      if(s>1800)el.className='card-timer twarn';
+  // Inject stage filter chips (once)
+  const fbar=document.getElementById('fbar');
+  if(!fbar.dataset.built){
+    fbar.dataset.built='1';
+    const sbox=fbar.querySelector('.sbox');
+    STAGES.forEach(s=>{
+      const p=PALETTE[s.ci];
+      const btn=document.createElement('button');
+      btn.className='chip';
+      btn.textContent=s.key;
+      btn.onclick=function(){setFilter(s.key,this);};
+      btn.style.setProperty('--ac',p.sd);
+      fbar.insertBefore(btn,sbox);
     });
-  },1000);
+  }
+
+  document.getElementById('board').innerHTML=STAGES.map(stage=>{
+    const p=PALETTE[stage.ci];
+    const sc=filtered.filter(c=>c.stage===stage.key);
+
+    const cardsHtml=sc.length?sc.map(c=>{
+      const col=avColor(c.id);
+      const colBg=col+'1a';
+      return `<div class="kcard" onclick="openModal('${escH(c.id)}')"
+        style="border-left-color:${p.sd};">
+        <div class="kcard-inner">
+          <div class="knum-circle" style="background:${colBg};color:${col};border-color:${col}40;">
+            ${escH(c.id)}
+          </div>
+          <div class="kcard-info">
+            <div class="k-product">${escH(c.endOfProduct||c.item||'—')}</div>
+            <div class="k-phone">${escH(c.phone3||'—')}</div>
+            <div class="k-name">${escH(c.name||'—')}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join(''):`<div class="empty-col">暫無工單</div>`;
+
+    return `<div class="col">
+      <div class="col-hd" style="background:${p.sbg};border-color:${p.sbr};">
+        <div class="col-hd-l">
+          <div class="cdot" style="background:${p.sd};"></div>
+          <span class="cname" style="color:${p.sc};">${stage.key}</span>
+        </div>
+        <span class="ccnt" style="color:${p.sc};">${sc.length}</span>
+      </div>
+      <div class="col-cards">${cardsHtml}</div>
+    </div>`;
+  }).join('');
 }
 
-function openAddCard(){
-  const id='new_'+Date.now();
-  cards.unshift({id,status:'pending',name:'',phone:'',phoneLast3:'',itemName:'',endOfProduct:'',bigCat:'',item:'',subItem:'',itemNote:'',brand:'',model:'',faultNote:'',extraNote:'',repairResult:'',repairResultDesc:'',repairSituation:'',repairman:'',partCost:'',tags:[],accessories:[],notifyTags:[],regNum:'',arrivedAt:null,repairStart:null,repairEnd:null});
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-  refreshCol('pending');
-  setTimeout(()=>{
-    document.getElementById('detail-'+id)?.classList.add('open');
-    document.getElementById('card-'+id)?.scrollIntoView({behavior:'smooth'});
-  },80);
+// ── MODAL ──
+function openModal(id){
+  const c=allCards.find(x=>String(x.id)===String(id));
+  if(!c)return;
+  const col=avColor(c.id);
+  const si=stageInfo(c.stage);
+  const p=si.p;
+
+  // header circle
+  const mc=document.getElementById('m-circle');
+  mc.textContent=c.id;
+  mc.style.background=col+'1a';mc.style.color=col;mc.style.borderColor=col+'50';
+  document.getElementById('m-num').textContent='掛號 '+c.regNum;
+  document.getElementById('m-title').textContent=(c.endOfProduct||c.item||'—')+' · '+c.name;
+
+  // accessories as toggle chips
+  const accList=c.accessories?c.accessories.split(/[,，、\s]+/).filter(Boolean):[];
+  const accHtml=accList.length?accList.map(a=>`<span class="acc-item on" onclick="this.classList.toggle('on')" data-acc="${escH(a)}">${escH(a)}</span>`).join(''):'<span style="font-size:12px;color:var(--text3)">無</span>';
+
+  // stage options
+  const stageOpts=STAGES.map(s=>`<option value="${escH(s.key)}"${c.stage===s.key?' selected':''}>${s.key}</option>`).join('');
+
+  const boolPill=(v)=>{
+    const yes=['是','true','1','yes','有'].includes(String(v).toLowerCase());
+    const no=['否','false','0','no','無'].includes(String(v).toLowerCase());
+    if(yes)return`<span class="pill pill-y">✔ 是</span>`;
+    if(no)return`<span class="pill pill-n">✘ 否</span>`;
+    return`<span class="pill pill-n">${escH(v)||'—'}</span>`;
+  };
+
+  document.getElementById('m-body').innerHTML=`
+    <div class="mrow"><div class="ml">掛號號碼</div><div class="mv hero">${escH(c.regNum||c.id)}</div></div>
+    <hr class="mdiv">
+
+    <div class="two">
+      <div class="mrow"><div class="ml">送修者姓名</div><div class="mv">${escH(c.name||'—')}</div></div>
+      <div class="mrow"><div class="ml">電話後3碼</div>
+        <div class="mv" style="font-family:'DM Mono',monospace;font-size:20px;font-weight:600;">${escH(c.phone3||'—')}</div>
+      </div>
+    </div>
+    ${c.phone?`<div class="mrow"><div class="ml">完整電話</div>
+      <div class="mv"><a href="tel:${escH(c.phone)}" style="color:var(--accent);text-decoration:none;">📞 ${escH(c.phone)}</a></div>
+    </div>`:''}
+
+    <hr class="mdiv">
+    <div class="two">
+      <div class="mrow"><div class="ml">產品分類</div><div class="mv">${escH(c.bigCat||'—')}</div></div>
+      <div class="mrow"><div class="ml">產品品項</div><div class="mv">${escH(c.item||'—')}</div></div>
+    </div>
+    <div class="two">
+      <div class="mrow"><div class="ml">產品細項</div><div class="mv">${escH(c.subItem||'—')}</div></div>
+      <div class="mrow"><div class="ml">End of 產品</div><div class="mv" style="font-weight:600;">${escH(c.endOfProduct||'—')}</div></div>
+    </div>
+    <div class="two">
+      <div class="mrow"><div class="ml">品牌</div><div class="mv">${escH(c.brand||'—')}</div></div>
+      <div class="mrow"><div class="ml">型號</div><div class="mv" style="font-family:'DM Mono',monospace;">${escH(c.model||'—')}</div></div>
+    </div>
+    <div class="three">
+      <div class="mrow"><div class="ml">出廠日期</div><div class="mv">${escH(c.mfgDate||'—')}</div></div>
+      <div class="mrow"><div class="ml">產品價格</div><div class="mv">${escH(c.price||'—')}</div></div>
+      <div class="mrow"><div class="ml">是否拆過</div>${boolPill(c.opened)}</div>
+    </div>
+    <div class="mrow"><div class="ml">配件</div><div class="acc-wrap" id="acc-wrap-${escH(c.id)}">${accHtml}</div></div>
+    <div class="mrow"><div class="ml">故障說明</div><div class="mv" style="color:var(--text2);font-size:13px;">${escH(c.faultDesc||'—')}</div></div>
+    <div class="mrow"><div class="ml">產品備註</div><div class="mv" style="color:var(--text2);font-size:13px;">${escH(c.itemNote||'—')}</div></div>
+    <div class="mrow"><div class="ml">備註標籤</div><div class="mv" style="color:var(--text2);font-size:13px;">${escH(c.noteTag||'—')}</div></div>
+
+    <hr class="mdiv">
+    <div class="two">
+      <div class="mrow"><div class="ml">維修_結果分類</div>
+        <input class="minput" id="mi-result-${escH(c.id)}" value="${escH(c.repairResult)}" placeholder="輸入結果分類">
+      </div>
+      <div class="mrow"><div class="ml">維修者</div>
+        <input class="minput" id="mi-repairman-${escH(c.id)}" value="${escH(c.repairman)}" placeholder="維修者">
+      </div>
+    </div>
+    <div class="mrow"><div class="ml">維修_結果說明</div>
+      <textarea class="mta" id="mi-resdesc-${escH(c.id)}" placeholder="輸入結果說明…">${escH(c.repairResultDesc)}</textarea>
+    </div>
+    <div class="mrow"><div class="ml">維修_補充備註</div>
+      <textarea class="mta" id="mi-repnote-${escH(c.id)}" placeholder="輸入補充備註…">${escH(c.repairNote)}</textarea>
+    </div>
+    <div class="three">
+      <div class="mrow"><div class="ml">零件費</div>
+        <input class="minput" id="mi-cost-${escH(c.id)}" value="${escH(String(c.partCost))}" placeholder="0">
+      </div>
+      <div class="mrow"><div class="ml">隨喜費</div>
+        <input class="minput" id="mi-donation-${escH(c.id)}" value="${escH(String(c.donationFee))}" placeholder="0">
+      </div>
+      <div class="mrow"><div class="ml">減碳貢獻</div>
+        <div class="mv">${escH(c.ecoContrib||'—')}</div>
+      </div>
+    </div>
+    <div class="mrow"><div class="ml">其他備註</div>
+      <textarea class="mta" id="mi-extra-${escH(c.id)}" placeholder="輸入其他備註…">${escH(c.extraNote)}</textarea>
+    </div>
+
+    <hr class="mdiv">
+    <div class="mrow"><div class="ml">流程階段（Kanban 狀態）</div>
+      <select class="msel" id="mi-stage-${escH(c.id)}">${stageOpts}</select>
+    </div>
+    <button class="save-btn" id="save-btn-${escH(c.id)}" onclick="saveCard('${escH(c.id)}')">儲存並同步至 Google Sheets</button>
+  `;
+
+  document.getElementById('mov').style.display='flex';
+  document.body.style.overflow='hidden';
 }
 
-// ═══ INTERVIEW ═══
-function renderCasePicker(){
-  const p=document.getElementById('casePicker');if(!p)return;
-  const active=cards.filter(c=>['arrived','repairing','ready','done'].includes(c.status));
-  p.innerHTML=active.length
-    ? active.map(c=>'<div class="case-chip'+(currentInterviewId===c.id?' selected':'')+'" onclick="selectCase(\''+c.id+'\')">'+(c.regNum?'#'+c.regNum+' ':'')+(c.itemName||c.name||c.id).slice(0,14)+'</div>').join('')
-    : '<div style="font-size:12px;color:var(--text2)">尚無報到案例</div>';
+function saveCard(id){
+  const c=allCards.find(x=>String(x.id)===String(id));
+  if(!c)return;
+  const btn=document.getElementById('save-btn-'+id);
+
+  // collect acc
+  const accWrap=document.getElementById('acc-wrap-'+id);
+  const accOn=accWrap?[...accWrap.querySelectorAll('.acc-item.on')].map(el=>el.dataset.acc).join('、'):'';
+
+  // collect fields
+  const g=(eid)=>{const el=document.getElementById(eid);return el?el.value.trim():'';}
+
+  const newStage=g('mi-stage-'+id)||c.stage;
+  const newResult=g('mi-result-'+id);
+  const newResDesc=g('mi-resdesc-'+id);
+  const newRepNote=g('mi-repnote-'+id);
+  const newCost=g('mi-cost-'+id);
+  const newExtra=g('mi-extra-'+id);
+  const newRepairman=g('mi-repairman-'+id);
+
+  // update local
+  c.stage=newStage;
+  c.repairResult=newResult;
+  c.repairResultDesc=newResDesc;
+  c.repairNote=newRepNote;
+  c.partCost=newCost;
+  c.extraNote=newExtra;
+  c.repairman=newRepairman;
+  c.accessories=accOn||c.accessories;
+
+  btn.disabled=true;btn.textContent='同步中…';
+
+  // GAS update params — 對應 GAS updateRow() 的 writeIf 欄位
+  const params={
+    id: c.id,
+    status: newStage,          // 分類 / 流程階段
+    result: newResult,         // 維修結果 → GAS writeIf("維修結果","result")
+    notes: newResDesc,         // 維修結果說明 → GAS writeIf("維修結果說明","notes")
+    repairNote: newRepNote,    // 當天修理狀況 → GAS writeIf("當天修理狀況","repairNote")
+    cost: newCost,             // 零件費
+    extraNote: newExtra,       // 其他備註
+    repairman: newRepairman,   // 維修者
+    accessories: c.accessories,
+  };
+
+  gasUpdate(params,
+    function(resp){
+      btn.disabled=false;btn.textContent='儲存並同步至 Google Sheets';
+      showToast('✓ 已成功同步至 Google Sheets（列 '+resp.row+'）');
+      closeModal();render();
+    },
+    function(){
+      btn.disabled=false;btn.textContent='儲存並同步至 Google Sheets';
+      showToast('⚠ 本機已更新，但 Google Sheets 同步失敗');
+      closeModal();render();
+    }
+  );
 }
 
-function selectCase(id){
-  currentInterviewId=id;
-  const iv=interviews[id]||{};
-  document.querySelectorAll('.opt-pill').forEach(p=>p.classList.remove('selected'));
-  document.getElementById('q1-note').value=iv.q1Note||'';
-  document.getElementById('q2-note').value=iv.q2Note||'';
-  (iv.q1||[]).forEach(v=>{ document.querySelectorAll('#opts-q1 .opt-pill').forEach(p=>{ if(p.textContent.trim()===v)p.classList.add('selected'); }); });
-  (iv.q2||[]).forEach(v=>{ document.querySelectorAll('#opts-q2 .opt-pill').forEach(p=>{ if(p.textContent.trim()===v)p.classList.add('selected'); }); });
-  currentRating=iv.rating||0;
-  document.querySelectorAll('#opts-q3 .opt-pill').forEach((p,i)=>p.classList.toggle('selected',i+1===currentRating));
-  renderCasePicker();
+function closeModal(){document.getElementById('mov').style.display='none';document.body.style.overflow='';}
+function closeBg(e){if(e.target===document.getElementById('mov'))closeModal();}
+
+function setFilter(key,el){
+  filterKey=key;
+  document.querySelectorAll('.fbar .chip').forEach(b=>b.classList.remove('on'));
+  if(el)el.classList.add('on');
+  render();
 }
 
-function setRating(r){
-  currentRating=r;
-  document.querySelectorAll('#opts-q3 .opt-pill').forEach((p,i)=>p.classList.toggle('selected',i+1===r));
+function setSyncState(st,lbl){
+  const d=document.getElementById('sdot');
+  d.className='sdot'+(st==='syncing'?' syncing':st==='err'?' err':'');
+  document.getElementById('slbl').textContent=lbl;
 }
-
-function saveInterview(){
-  if(!currentInterviewId){showToast('請先選擇送修者');return;}
-  const q1=[...document.querySelectorAll('#opts-q1 .opt-pill.selected')].map(p=>p.textContent.trim());
-  const q2=[...document.querySelectorAll('#opts-q2 .opt-pill.selected')].map(p=>p.textContent.trim());
-  interviews[currentInterviewId]={q1,q1Note:document.getElementById('q1-note').value,q2,q2Note:document.getElementById('q2-note').value,rating:currentRating};
-  localStorage.setItem(INTERVIEW_KEY,JSON.stringify(interviews));
-  showToast('✓ 訪問記錄已儲存');updateReport();
+function setLBar(on){
+  const b=document.getElementById('lbar');
+  b.className='lbar'+(on?' on':' done');
+  if(!on)setTimeout(()=>b.className='lbar',400);
 }
-
-// ═══ REPORT ═══
-function updateReport(){
-  const total=cards.length;
-  const done=cards.filter(c=>c.status==='done').length;
-  const repaired=cards.filter(c=>['repairing','ready','done'].includes(c.status)).length;
-  const success=cards.filter(c=>(c.repairResult||'').startsWith('OK')).length;
-  const ivCount=Object.keys(interviews).length;
-  const rate=repaired?Math.round(success/repaired*100):0;
-  document.getElementById('reportStats').innerHTML=
-    mStat(total,'總掛號數','var(--blue)')+mStat(done,'已領取','var(--green)')+
-    mStat(repaired,'已維修','var(--orange)')+mStat(success,'成功修復','var(--green)')+
-    mStat(ivCount,'訪問件數','var(--purple)')+mStat(rate+'%','修復率','var(--blue)');
-
-  const iCnt={};
-  cards.forEach(c=>{if(c.itemName)iCnt[c.itemName]=(iCnt[c.itemName]||0)+1;});
-  const iTop=Object.entries(iCnt).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const iMax=Math.max(...iTop.map(e=>e[1]),1);
-  document.getElementById('repairChart').innerHTML=iTop.length?iTop.map(([n,v])=>mBar(n,v,iMax,'var(--blue)')).join(''):mEmpty();
-
-  const rMap={'OK_成功':0,'NO_失敗':0,'未送修':0,'Pending':0};
-  const rCol={'OK_成功':'var(--green)','NO_失敗':'var(--red)','未送修':'var(--gray)','Pending':'var(--purple)'};
-  cards.forEach(c=>{if(c.repairResult&&rMap[c.repairResult]!==undefined)rMap[c.repairResult]++;});
-  const rMax=Math.max(...Object.values(rMap),1);
-  document.getElementById('resultChart').innerHTML=Object.entries(rMap).map(([n,v])=>mBar(n,v,rMax,rCol[n])).join('');
-
-  const allW=Object.values(interviews).flatMap(iv=>[...(iv.q1||[]),...(iv.q2||[])]);
-  const wCnt={};allW.forEach(w=>wCnt[w]=(wCnt[w]||0)+1);
-  const wE=Object.entries(wCnt).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('wordCloud').innerHTML=wE.length?wE.map(([w,n])=>'<span class="word-pill'+(n>2?' lg':n<2?' sm':'')+'">'+(w)+'</span>').join(''):mEmpty();
-
-  const notes=Object.entries(interviews).map(([id,iv])=>{
-    const c=cards.find(x=>x.id===id);
-    const label=c?('#'+(c.regNum||'?')+' '+c.itemName):id;
-    const text=[iv.q1Note,iv.q2Note].filter(Boolean).join(' / ');
-    return text?{label,text}:null;
-  }).filter(Boolean);
-  document.getElementById('reportNotes').innerHTML=notes.length
-    ?notes.map((n,i)=>'<div class="note-item"><div class="note-idx">'+String(i+1).padStart(2,'0')+'</div><div><div style="font-size:10px;color:var(--text2);margin-bottom:2px">'+n.label+'</div><textarea class="note-edit" rows="2">'+n.text+'</textarea></div></div>').join('')
-    :'<div style="font-size:12px;color:var(--text2)">尚無訪問節錄</div>';
-}
-
-function mStat(n,label,color){return '<div class="stat-card"><div class="stat-num" style="color:'+color+'">'+n+'</div><div class="stat-lbl">'+label+'</div></div>';}
-function mBar(name,val,max,color){return '<div class="bar-row"><div class="bar-lbl">'+name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(val/max*100)+'%;background:'+color+'"></div></div><div class="bar-val">'+val+'</div></div>';}
-function mEmpty(){return '<div style="font-size:12px;color:var(--text2)">暫無資料</div>';}
-
-// ═══ NAV & SETTINGS ═══
-function switchPage(pageId,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+pageId).classList.add('active');
-  btn.classList.add('active');
-  if(pageId==='report')updateReport();
-  if(pageId==='interview')renderCasePicker();
-}
-
-function toggleTab(tab,enabled){
-  settings['show'+tab.charAt(0).toUpperCase()+tab.slice(1)]=enabled;
-  localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
-  applySettings();
-}
-
-function applySettings(){
-  document.getElementById('nav-interview').style.display=settings.showInterview!==false?'':'none';
-  document.getElementById('nav-report').style.display=settings.showReport!==false?'':'none';
-}
-
-function saveSettings(){
-  localStorage.setItem(SHEET_URL_KEY,document.getElementById('sheetUrl').value.trim());
-  showToast('✓ 設定已儲存');
-}
-
-// ═══ DEMO & UTIL ═══
-function loadDemo(){
-  const now=Date.now();
-  const demo=[
-    {id:'4', status:'done',      name:'AAA',phone:'0932000258',phoneLast3:'258',itemName:'箱扇',          endOfProduct:'箱扇',          brand:'無法辨識/無品牌',model:'',          regNum:'4', bigCat:'生活家電',   item:'電風扇', faultNote:'有時無法通電',  repairResult:'NO_失敗',tags:[],accessories:[],notifyTags:[],arrivedAt:now-3600000,repairStart:now-3300000,repairEnd:now-1800000},
-    {id:'16',status:'ready',     name:'BBB',phone:'0932000123',phoneLast3:'123',itemName:'烘被器/烘鞋機',  endOfProduct:'烘被器/烘鞋機',  brand:'Sampo 聲寶',   model:'skc4160rl', regNum:'16',bigCat:'生活家電',   item:'電暖器', faultNote:'懷疑啟動電容',  repairResult:'NO_失敗',tags:[],accessories:[],notifyTags:['電話已通知'],arrivedAt:now-3000000,repairStart:now-2700000,repairEnd:now-1200000},
-    {id:'17',status:'arrived',   name:'CCC',phone:'0932000111',phoneLast3:'111',itemName:'吹風機',         endOfProduct:'吹風機',         brand:'Sharp 夏普',   model:'PJS16JA',   regNum:'17',bigCat:'美容美體家電',item:'吹風機', faultNote:'插電無反應',   repairResult:'',       tags:[],accessories:[],notifyTags:[],arrivedAt:now-1200000},
-    {id:'18',status:'transfer',  name:'DDD',phone:'0932000112',phoneLast3:'112',itemName:'箱扇',           endOfProduct:'箱扇',           brand:'大家源',       model:'TCY-2788',  regNum:'18',bigCat:'生活家電',   item:'電風扇', faultNote:'底座彈片歪掉',  repairResult:'未送修', tags:['取消'],accessories:[],notifyTags:[],arrivedAt:null},
-    {id:'20',status:'pending',   name:'AAA',phone:'0932000113',phoneLast3:'113',itemName:'檯燈',           endOfProduct:'檯燈',           brand:'Twinbird',     model:'TB-G006TW', regNum:'',  bigCat:'照明用具',   item:'檯燈',   faultNote:'無法噴蒸氣',   repairResult:'',       tags:[],accessories:[],notifyTags:[],arrivedAt:null},
-    {id:'22',status:'repairing', name:'CCC',phone:'0932000115',phoneLast3:'115',itemName:'露營燈',         endOfProduct:'露營燈',         brand:'國際牌National',model:'NL-780',    regNum:'22',bigCat:'照明用具',   item:'露營燈', faultNote:'加熱指示燈不亮',repairResult:'',       tags:[],accessories:[],notifyTags:[],arrivedAt:now-1800000,repairStart:now-600000},
-    {id:'25',status:'pending',   name:'DDD',phone:'0932000116',phoneLast3:'116',itemName:'檯燈',           endOfProduct:'檯燈',           brand:'國際牌Panasonic',model:'SR-RQ189', regNum:'',  bigCat:'照明用具',   item:'檯燈',   faultNote:'彈簧開關壞掉',  repairResult:'',       tags:['電話已通知'],accessories:[],notifyTags:[],arrivedAt:null},
-  ];
-  demo.forEach(d=>{if(!cards.find(c=>c.id===d.id))cards.push(d);});
-  localStorage.setItem(DATA_KEY,JSON.stringify(cards));
-  renderKanban();renderCasePicker();updateReport();
-  showToast('✓ 示範資料已載入');
-}
-
-function clearData(){
-  if(!confirm('確定清除所有本地資料？'))return;
-  cards=[];interviews={};
-  localStorage.setItem(DATA_KEY,'[]');localStorage.setItem(INTERVIEW_KEY,'{}');
-  renderKanban();renderCasePicker();updateReport();showToast('已清除');
-}
-
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Demo fallback
+function loadDemo(){
+  const names=['王小明','李美華','陳大偉','張雅婷','林志遠','吳佳穎','黃建國','劉淑芬'];
+  const prods=['電風扇','吹風機','電鍋','果汁機','咖啡機','吸塵器','烤麵包機','電熨斗'];
+  const brands=['Panasonic','LG','TECO','Hitachi','Sharp'];
+  const r=a=>a[Math.floor(Math.random()*a.length)];
+  allCards=Array.from({length:20},(_,i)=>({
+    id:String(i+1).padStart(3,'0'),rowIndex:i+2,
+    name:r(names),phone:'0912'+String(Math.floor(Math.random()*9000)+1000),
+    phone3:String(Math.floor(Math.random()*900)+100),
+    endOfProduct:r(prods),item:r(prods),subItem:'家用型',
+    bigCat:r(['生活電器','廚房電器']),brand:r(brands),
+    model:'M'+String(Math.floor(Math.random()*9000)+1000),
+    accessories:'電源線、遙控器',mfgDate:'2020-01',price:'',
+    faultDesc:'無法正常啟動',itemNote:'',noteTag:'',
+    opened:Math.random()>.5?'是':'否',
+    regNum:String(i+1).padStart(4,'0'),
+    extraNote:'',repairResult:'',repairResultDesc:'',
+    repairNote:'',repairman:'',partCost:'',donationFee:'',ecoContrib:'',
+    stage:['未報到','已報到等待維修','維修中','待領取','已領取','轉診或待確認'][Math.floor(Math.random()*6)],
+  }));
+  document.getElementById('sub-lbl').textContent='⚠ 顯示示範資料（請設定 GAS_URL）';
+  render();
 }
 
-window.addEventListener('DOMContentLoaded',init);
+// auto refresh every 30s
+function startAuto(){
+  clearInterval(refreshTimer);
+  refreshTimer=setInterval(fetchData,30000);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchData();});
+document.getElementById('q').addEventListener('input',function(){searchQ=this.value.trim();render();});
+
+// init
+if(GAS_URL&&GAS_URL.includes('script.google.com')){
+  fetchData();
+  startAuto();
+} else {
+  setSyncState('err','請設定 GAS_URL');
+  document.getElementById('sub-lbl').textContent='請在程式碼中填入 GAS_URL';
+  loadDemo();
+}
 </script>
 </body>
 </html>
