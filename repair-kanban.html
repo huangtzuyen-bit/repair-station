@@ -875,7 +875,7 @@ function openModal(id,stageKey){
         <div class="trow"><div class="tl">電話</div><span class="tv">${escH(c.phone||'—')}</span></div>
         <div class="trow"><span class="tl">電話</span><a class="call-link" href="tel:${escH(c.phone)}">${escH(c.phone)}</a></div>
       </div>
-
+    <div class="msec">
       <div class="msec-title">產品資訊</div>
       <div class="trow"><span class="tl">End of 產品</span><span class="tv">${escH(c.endOfProduct||'—')}</span></div>
       <div class="trow"><span class="tl">分類 / 品項</span><span class="tv">${escH(c.bigCat||'—')} / ${escH(c.item||'—')}</span></div>
@@ -884,18 +884,19 @@ function openModal(id,stageKey){
       <div class="trow"><span class="tl">是否拆過</span><span class="tv">${boolPill(c.opened)}</span></div>
       <div class="trow"><span class="tl">配件</span><span class="tv"><div class="acc-wrap" id="acc-${escH(sid)}">${accHtml}</div></span></div>
     </div>
+     <div class="msec">   
       <div class="msec-title">故障說明</div>
       <div class="trow"><span class="tl">故障說明</span><span class="tv note-text">${escH(c.faultDesc||'—')}</span></div>
       <div class="trow"><span class="tl">產品備註</span><span class="tv note-text">${escH(c.itemNote||'—')}</span></div>
       <div class="trow"><span class="tl">備註標籤</span><span class="tv" style="color:var(--text2);">${escH(c.noteTag||'—')}</span></div>
     </div>
-
+    <div class="msec">
       <div class="msec-title">維修紀錄</div>
       <div class="trow"><span class="tl">結果 / 說明</span><span class="tv">${escH(c.repairResult||'—')} / ${escH(c.repairResultDesc||'—')}</span></div>
       <div class="trow"><span class="tl">維修備註</span><span class="tv" style="color:var(--text2);">${escH(c.repairNote||'—')}</span></div>
        <div class="trow"><span class="tl">零件費</span><span class="tv" style="color:var(--text2);">${escH(c.partCost||'—')}</span></div>
     </div>
-
+    <div class="msec">
       <div class="msec-title">維修紀錄</div>   
       <div class="trow edit"><span class="tl">結果分類 / 維修者</span>
         <div class="two-inp"><input class="minput" id="mi-result-${escH(sid)}" value="${escH(c.repairResult)}" placeholder="結果分類">
