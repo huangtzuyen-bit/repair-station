@@ -217,7 +217,7 @@ body{
 
 /* quick stage select in header */
 .m-quick-stage{
-  padding:5px 36px 5px 10px;font-size:13px;font-weight:600;
+  font-size:13px;font-weight:600;
   border:1.5px solid var(--border2);border-radius:20px;
   background:var(--surface);color:var(--text);
   font-family:inherit;outline:none;cursor:pointer;
@@ -272,7 +272,7 @@ body{
   width: fit-content;    /* 讓寬度隨文字內容長度自動調整，不再撐死 */
   min-width: 120px;      /* 設定一個最小寬度，避免選單太縮 */
   max-width: 160px;      /* 限制最大寬度，避免擋到其他元件 */
-  padding: 8px 44px 8px 12px; /* 加大右側內距，讓箭頭靠左、右邊留白更多 */
+  padding: 8px 60px 8px 12px; /* 增加右側內距 (30px)，為箭頭留空間 */
   font-size: 15px;
   border: 1px solid var(--border2);
   border-radius: 10px;
@@ -680,7 +680,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 // ═══════════════════════════════════════════
 // CONFIG (可在設定頁修改)
 // ═══════════════════════════════════════════
-let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbxpADZ3nxNvexKHEpZSgsAtNqgxROmH6tVzefxcy53g96JKaMcq8vd4SnHKJb7tmUAV/exec';
+let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbxL0QTCbCvl2VqWAl-IXkClBxVXJvLxsKz0uhO7YgHePvin_E2-0MsL0d1Qgsy0kcmk/exec';
 
 const STAGES = [
   {key:'未報到',        ci:0},
@@ -780,6 +780,7 @@ function mapCard(raw){
   const rawId = String(raw.id||raw['編號']||'').trim();
   const stage = (raw.stage||raw['流程階段']||raw.status||'').trim()||'未報到';
   return{
+    rowNum:raw.rowNum||0,
     id:rawId, endOfProduct:raw.endOfProduct||raw['End of 產品']||raw.item||'',
     phone3, name:raw.name||raw['送修者姓名']||raw['姓名']||'',
     phone, regNum:raw.regNum||rawId||'',
@@ -1039,13 +1040,14 @@ function openModal(id,stageKey){
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.price||'')}</span>
+      </div>
       <div class="trow">
         <span class="tl">配件</span>
         <span class="tv-edit" id="ei-price-${escH(sid)}"
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.accessories||'')}</span>
-              </div>
+      <div class="trow"><span class="tl">是否拆過</span><span class="tv">${boolPill(c.opened)}</span></div>
       </div>
       </div>  
       </div>
@@ -1211,7 +1213,7 @@ function saveCard(id,sid){
   if(accOn)c.accessories=accOn;
   btn.disabled=true;btn.textContent='同步中…';
   gasUpdate({
-    id:c.id, newId:newId, status:c.stage,
+    rowNum:c.rowNum||'', id:c.id, newId:newId, status:c.stage,
     name:newName, phone:newPhone,
     model:newModel, mfgDate:newMfgDate,
     price:newPrice, faultDesc:newFault,
@@ -1265,7 +1267,7 @@ function quickStageChange(newStage){
 
   // auto-save to GAS
   gasUpdate(
-    {id:c.id,status:newStage,result:c.repairResult,notes:c.repairResultDesc,
+    {rowNum:c.rowNum||'',id:c.id,status:newStage,result:c.repairResult,notes:c.repairResultDesc,
      repairNote:c.repairNote,repairman:c.repairman,cost:c.partCost,
      extraNote:c.extraNote,accessories:c.accessories},
     resp=>{ showToast('✓ 階段已同步至 Google Sheets'); render(); },
