@@ -726,6 +726,9 @@ function applyInterviewSetting(){
 // ══ TAB SWITCHING ══
 function switchTab(tab){
   currentTab = tab;
+  // Always close modal and restore scroll when switching tabs
+  document.getElementById('mov').style.display='none';
+  document.body.style.overflow='';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
@@ -775,23 +778,49 @@ function fetchData(){
     loadDemo();return;
   }
   setSyncState('syncing','同步中…');setLBar(true);
+  // Show "loading" only if board is completely empty
+  if(!allCards.length){
+    document.getElementById('board').innerHTML='<div style="padding:40px;color:var(--text3);font-size:14px;">載入中…</div>';
+  }
   const cb='_gc_'+Date.now();
   const s=document.createElement('script');
   s.src=GAS_URL+'?action=get&callback='+cb+'&t='+Date.now();
   let done=false;
   window[cb]=function(resp){
-    done=true;try{document.head.removeChild(s);}catch(e){}delete window[cb];
-    if(resp&&resp.data&&resp.data.length>0){
-      allCards=resp.data.map(mapCard);
+    done=true;
+    try{document.head.removeChild(s);}catch(e){}
+    delete window[cb];
+    // Accept various response shapes from GAS
+    let cards=null;
+    if(resp){
+      if(Array.isArray(resp.data)&&resp.data.length>0) cards=resp.data;
+      else if(Array.isArray(resp)&&resp.length>0) cards=resp;
+      else if(Array.isArray(resp.rows)&&resp.rows.length>0) cards=resp.rows;
+    }
+    if(cards&&cards.length>0){
+      allCards=cards.map(mapCard);
       buildStageChips();render();
       const now=new Date();
       setSyncState('ok',now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')+' 同步');
-    } else { setSyncState('err','無資料'); if(!allCards.length)loadDemo(); }
+    } else {
+      setSyncState('err','無資料');
+      buildStageChips();  // still build chips
+      if(!allCards.length)loadDemo();
+      else render();
+    }
     setLBar(false);
   };
   s.onerror=function(){
-    if(!done){done=true;try{document.head.removeChild(s);}catch(e){}delete window[cb];
-    setSyncState('err','連線失敗');setLBar(false);if(!allCards.length)loadDemo();}
+    if(!done){
+      done=true;
+      try{document.head.removeChild(s);}catch(e){}
+      delete window[cb];
+      setSyncState('err','連線失敗');
+      setLBar(false);
+      buildStageChips();  // still build chips so UI is usable
+      if(!allCards.length)loadDemo();
+      else render();
+    }
   };
   setTimeout(()=>{if(!done)s.onerror();},8000); // 8s timeout
   document.head.appendChild(s);
@@ -1391,6 +1420,8 @@ document.getElementById('q').addEventListener('input',function(){searchQ=this.va
 
 // ══ INIT ══
 loadSettings();
+// Always build chips immediately so filter bar is usable
+buildStageChips();
 // Check for placeholder URL — treat as unconfigured
 const _isRealGasUrl = GAS_URL &&
   GAS_URL.includes('script.google.com') &&
