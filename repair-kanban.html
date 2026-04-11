@@ -666,7 +666,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 // ═══════════════════════════════════════════
 // CONFIG (可在設定頁修改)
 // ═══════════════════════════════════════════
-let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbxhcnu7yFewxa5AokNDGeO7s6Z2qjxAhqYRVSCn5Gbvf8SjgNhAieosR7muXyTq2h-4/exec';
+let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbzYDbhz7vaCWk7x2NiGhhEyUBkgiiLIuDO9J-2W695OWnKfdr3SJTRUF8F-8QxFWY_s/exec';
 
 const STAGES = [
   {key:'未報到',        ci:0},
@@ -697,6 +697,16 @@ let interviewEnabled = true;
 let autoSync   = true;
 let selectedCard = null; // for interview binding
 let interviews = JSON.parse(localStorage.getItem('interviews')||'[]');
+
+// ── Dropdown cache (loaded from GAS getDropdowns, fallback to static) ──
+let dropdownCache = {
+  resultOpts: ['OK_成功','NO_失敗','未送修','轉診或退回不受理'],
+  subOpts: {
+    'OK_成功':['OK 更換零件','OK 無更換零件: 清潔/重新組裝或固定','OK 非故障/不熟悉或不當操作','OK 沒有解釋說明','OK 物主自行購買更換零件','OK 維修但原有部分功能失效','OK 改裝&升級代替原有零件'],
+    'NO_失敗':['No 沒有零件','No 安全疑慮 不建議維修 (多處損壞/火花/漏液鏽蝕或融化燒毀/脆化變形或斷裂)','No 沒有解釋說明','No 無法判別故障原因 (無法拆開/ 過於複雜/ 無對應工具或說明書)','No 無法進一步更換零件或維修 (結構難拆卸或清潔零件/內部過於精密)','No 物主放棄維修 (破損疑慮/費用疑慮等)'],
+    '轉診或退回不受理':['考量活動當下時間與資源轉介至專業維修店','保固期內建議送至原廠或經銷中心','配件不齊全無法檢測','No 已更換零件或清潔但無法正常使用','No 功能疑慮 不建議維修 (影響防水或精準)'],
+  }
+};
 
 // ══ SETTINGS ══
 function loadSettings(){
@@ -810,6 +820,25 @@ function gasUpdate(params,onOk,onErr){
   document.head.appendChild(s);
 }
 
+// ══ FETCH DROPDOWNS FROM GAS ══
+function gasGetDropdowns(){
+  if(!GAS_URL||!GAS_URL.includes('script.google.com'))return;
+  const cb='_gd_'+Date.now();
+  const s=document.createElement('script');
+  s.src=GAS_URL+'?action=getDropdowns&callback='+cb+'&t='+Date.now();
+  let done=false;
+  window[cb]=function(resp){
+    done=true;try{document.head.removeChild(s);}catch(e){}delete window[cb];
+    if(resp&&resp.resultOpts&&resp.resultOpts.length){
+      dropdownCache.resultOpts=resp.resultOpts;
+      if(resp.subOpts)dropdownCache.subOpts=resp.subOpts;
+    }
+  };
+  s.onerror=function(){if(!done){done=true;try{document.head.removeChild(s);}catch(e){}delete window[cb];}};
+  setTimeout(()=>{if(!done)s.onerror();},10000);
+  document.head.appendChild(s);
+}
+
 // ══ REPAIR: BUILD CHIPS ══
 function buildStageChips(){
   if(chipsBuilt)return;chipsBuilt=true;
@@ -899,18 +928,12 @@ function openModal(id,stageKey){
   };
   const sid=c.id||'noid';
 
-  // ── Repair Result cascading dropdowns data ──
-  const RESULT_OPTS = ['', 'OK_成功', 'NO_失敗', '未送修', '轉診或退回不受理'];
-  const SUB_OPTS = {
-    'OK_成功': ['OK 更換零件','OK 無更換零件: 清潔/重新組裝或固定','OK 非故障/不熟悉或不當操作','OK 沒有解釋說明','OK 物主自行購買更換零件','OK 維修但原有部分功能失效','OK 改裝&升級代替原有零件'],
-    'NO_失敗': ['No 沒有零件','No 安全疑慮 不建議維修 (多處損壞/火花/漏液鏽蝕或融化燒毀/脆化變形或斷裂)','No 沒有解釋說明','No 無法判別故障原因 (無法拆開/ 過於複雜/ 無對應工具或說明書)','No 無法進一步更換零件或維修 (結構難拆卸或清潔零件/內部過於精密)','No 物主放棄維修 (破損疑慮/費用疑慮等)'],
-    '轉診或退回不受理': ['考量活動當下時間與資源轉介至專業維修店','保固期內建議送至原廠或經銷中心','配件不齊全無法檢測','No 已更換零件或清潔但無法正常使用','No 功能疑慮 不建議維修 (影響防水或精準)'],
-  };
+  // ── Repair Result cascading dropdowns — use live cache from GAS ──
   const curResult = c.repairResult||'';
   const curDesc   = c.repairResultDesc||'';
-  const buildResultSel = (sel) => RESULT_OPTS.map(o=>`<option value="${escH(o)}"${sel===o?' selected':''}>${o||'— 選擇維修結果 —'}</option>`).join('');
+  const buildResultSel = (sel) => ['', ...dropdownCache.resultOpts].map(o=>`<option value="${escH(o)}"${sel===o?' selected':''}>${o||'— 選擇維修結果 —'}</option>`).join('');
   const buildSubSel = (sel, selD) => {
-    const opts = SUB_OPTS[sel]||[];
+    const opts = dropdownCache.subOpts[sel]||[];
     if(!opts.length) return `<select class="msel-result" id="mi-resdesc-${escH(sid)}" style="display:none;"></select>`;
     return `<select class="msel-result" id="mi-resdesc-${escH(sid)}" onchange="markDirty('${escH(sid)}')">${['', ...opts].map(o=>`<option value="${escH(o)}"${selD===o?' selected':''}>${o||'— 選擇說明 —'}</option>`).join('')}</select>`;
   };
@@ -1014,17 +1037,12 @@ function markDirty(sid){
   if(btn&&btn.disabled){btn.disabled=false;btn.textContent='儲存';}
 }
 
-// ── cascading result dropdown ──
+// ── cascading result dropdown — use live dropdownCache ──
 function onResultChange(sid){
   const selResult=document.getElementById('mi-result-'+sid).value;
-  const SUB={
-    'OK_成功':['OK 更換零件','OK 無更換零件: 清潔/重新組裝或固定','OK 非故障/不熟悉或不當操作','OK 沒有解釋說明','OK 物主自行購買更換零件','OK 維修但原有部分功能失效','OK 改裝&升級代替原有零件'],
-    'NO_失敗':['No 沒有零件','No 安全疑慮 不建議維修 (多處損壞/火花/漏液鏽蝕或融化燒毀/脆化變形或斷裂)','No 沒有解釋說明','No 無法判別故障原因 (無法拆開/ 過於複雜/ 無對應工具或說明書)','No 無法進一步更換零件或維修 (結構難拆卸或清潔零件/內部過於精密)','No 物主放棄維修 (破損疑慮/費用疑慮等)'],
-    '轉診或退回不受理':['考量活動當下時間與資源轉介至專業維修店','保固期內建議送至原廠或經銷中心','配件不齊全無法檢測','No 已更換零件或清潔但無法正常使用','No 功能疑慮 不建議維修 (影響防水或精準)'],
-  };
   const wrap=document.getElementById('sub-wrap-'+sid);
   if(!wrap)return;
-  const opts=SUB[selResult]||[];
+  const opts=dropdownCache.subOpts[selResult]||[];
   if(!opts.length){wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" style="display:none;"></select>`;return;}
   wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" onchange="markDirty('${sid}')">${['', ...opts].map(o=>`<option value="${o}">${o||'— 選擇說明 —'}</option>`).join('')}</select>`;
 }
@@ -1435,7 +1453,7 @@ document.getElementById('q').addEventListener('input',function(){searchQ=this.va
 
 // ══ INIT ══
 loadSettings();
-if(GAS_URL&&GAS_URL.includes('script.google.com')){fetchData();startAuto();}
+if(GAS_URL&&GAS_URL.includes('script.google.com')){fetchData();gasGetDropdowns();startAuto();}
 else{setSyncState('err','請設定 GAS URL');loadDemo();}
 renderInterviewLog();
 </script>
