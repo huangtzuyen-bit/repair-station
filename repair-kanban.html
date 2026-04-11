@@ -227,7 +227,7 @@ body{
 .msec{padding:16px 20px 2px;}
 .msec-title{
   display:flex;align-items:center;gap:7px;
-  font-size:15px;letter-spacing:.07em;text-transform:uppercase;
+  font-size:15px;text-transform:uppercase;
   color:var(--text2);margin-bottom:10px;
 }
 .msec-title::after{content:none;} /* ← 移除橫線 */
@@ -237,7 +237,7 @@ body{
 .trow{display:grid;grid-template-columns:90px 1fr;align-items:start;gap:4px 12px;padding:8px 0;}
 .trow:last-child{}  /* no border */
 .trow.edit{grid-template-columns:1fr;gap:5px;}
-.tl{font-size:15px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;}
+.tl{font-size:15px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;margin-bottom:10px}
 .trow.edit .tl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);}
 .tv{font-size:15px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;}
 .tv.bold{font-weight:700;}
@@ -640,7 +640,7 @@ const STAGES = [
 ];
 
 const PALETTE = [
-  {sc:'#fff',sbg:'#94a3b8',colBg:'#f1f5f9',circleBg:'#e2e8f0',circleColor:'#475569'},
+  {sc:'#fff',sbg:'#E1F0FF',colBg:'#f1f5f9',circleBg:'#e2e8f0',circleColor:'#475569'},
   {sc:'#fff',sbg:'#3b82f6',colBg:'#eff6ff',circleBg:'#dbeafe',circleColor:'#1d4ed8'},
   {sc:'#fff',sbg:'#f97316',colBg:'#fff7ed',circleBg:'#fed7aa',circleColor:'#c2410c'},
   {sc:'#fff',sbg:'#8b5cf6',colBg:'#f5f3ff',circleBg:'#ede9fe',circleColor:'#6d28d9'},
@@ -864,10 +864,9 @@ function openModal(id,stageKey){
 
     </div>
     <div class="msec">
-        <div class="msec-title">客戶資料</div>
+        <div class="msec-title">送修資料</div>
         <div class="trow"><div class="tl">姓名</div><span class="tv">${escH(c.name||'—')}</span></div>
         <div class="trow"><div class="tl">電話後3碼</div><span class="tv">${escH(c.phone3||'—')}</span></div>
-        <div class="trow"><div class="tl">電話</div><span class="tv">${escH(c.phone||'—')}</span></div>
         <div class="trow"><span class="tl">電話</span><a class="call-link" href="tel:${escH(c.phone)}">${escH(c.phone)}</a></div>
       </div>
       </div>
@@ -891,8 +890,7 @@ function openModal(id,stageKey){
       <div class="trow"><span class="tl">結果 / 說明</span><span class="tv">${escH(c.repairResult||'—')} / ${escH(c.repairResultDesc||'—')}</span></div>
       <div class="trow"><span class="tl">維修備註</span><span class="tv" style="color:var(--text2);">${escH(c.repairNote||'—')}</span></div>
        <div class="trow"><span class="tl">零件費</span><span class="tv" style="color:var(--text2);">${escH(c.partCost||'—')}</span></div>
-    </div>
-      <div class="trow edit"><span class="tl">其他備註</span><textarea class="mta" id="mi-extra-${escH(sid)}" placeholder="其他備註…">${escH(c.extraNote)}</textarea></div>
+              <div class="trow"><span class="tl">其他備註</span><span class="tv" style="color:var(--text2);">${escH(c.xtraNote||'—')}</span></div>
     </div>
     <!-- floating save for editable fields (not stage) -->
     <div style="padding:16px 20px 8px;display:flex;justify-content:center;">
