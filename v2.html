@@ -245,7 +245,7 @@ body{
 .trow.edit{grid-template-columns:1fr;gap:5px;}
 
 /* Label - bold, smaller, muted */
-.tl{font-size:12px;color:var(--text3);font-weight:700;padding-top:3px;line-height:1.5;letter-spacing:.02em;text-transform:uppercase;}
+.tl{font-size:14px;color:var(--text);font-weight:700;padding-top:3px;line-height:1.5;letter-spacing:.02em;text-transform:uppercase;}
 .trow.edit .tl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);}
 
 /* Value - main text, indented via grid column */
@@ -701,7 +701,7 @@ let interviews = JSON.parse(localStorage.getItem('interviews')||'[]');
 
 // ── Dropdown cache (loaded from GAS getDropdowns, fallback to static) ──
 let dropdownCache = {
-  resultOpts: ['OK_成功','NO_失敗','未送修','轉診或退回不受理'],
+  resultOpts: ['OK_成功','NO_失敗','轉診或退回不受理'],
   subOpts: {
     'OK_成功':['OK 更換零件','OK 無更換零件: 清潔/重新組裝或固定','OK 非故障/不熟悉或不當操作','OK 沒有解釋說明','OK 物主自行購買更換零件','OK 維修但原有部分功能失效','OK 改裝&升級代替原有零件'],
     'NO_失敗':['No 沒有零件','No 安全疑慮 不建議維修 (多處損壞/火花/漏液鏽蝕或融化燒毀/脆化變形或斷裂)','No 沒有解釋說明','No 無法判別故障原因 (無法拆開/ 過於複雜/ 無對應工具或說明書)','No 無法進一步更換零件或維修 (結構難拆卸或清潔零件/內部過於精密)','No 物主放棄維修 (破損疑慮/費用疑慮等)'],
@@ -1032,6 +1032,13 @@ function openModal(id,stageKey){
       <div class="trow"><span class="tl">是否拆過</span><span class="tv">${boolPill(c.opened)}</span></div>
       <div class="trow"><span class="tl">配件</span><span class="tv"><div class="acc-wrap" id="acc-${escH(sid)}">${accHtml}</div></span></div>
     </div>
+          <div class="trow">
+        <span class="tl">配件</span>
+        <span class="tv-edit" id="ei-price-${escH(sid)}"
+          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+        >${escH(c.accessories||'')}</span>
+      </div>
     <div class="msec">
       <div class="msec-title">故障說明</div>
       <div class="trow">
