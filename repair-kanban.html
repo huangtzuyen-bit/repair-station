@@ -148,7 +148,7 @@ body{
   padding:9px 13px;border-radius:10px 10px 0 0;
 }
 .cname{font-size:15px;font-weight:700;}
-.ccnt{font-size:13px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.28);}
+.ccnt{font-size:13px;font-weight:700;padding:2px 9px;border-radius:20px;background:#F0F0F5;}
 .col-body{border-radius:0 0 11px 11px;padding:9px 7px 11px;flex:1;min-height:70px;display:flex;flex-direction:column;gap:7px;}
 
 .kcard{
@@ -568,8 +568,8 @@ input:checked+.slider::before{transform:translateX(20px);}
 <div class="page" id="page-stats">
   <div class="page-inner">
     <div class="page-header">
-      <h2>📊 統計</h2>
-      <p>維修工單與訪問資料摘要</p>
+      <h2>統計</h2>
+      <p>維修與訪問摘要</p>
     </div>
     <div id="stats-content"></div>
   </div>
@@ -1188,7 +1188,7 @@ function renderStats(){
       <div class="kpi-mini"><div class="kpi-n" style="color:#f97316;">${inProgress}</div><div class="kpi-l">維修中</div></div>
       <div class="kpi-mini"><div class="kpi-n" style="color:#8b5cf6;">${readyPickup}</div><div class="kpi-l">待領取</div></div>
       <div class="kpi-mini"><div class="kpi-n" style="color:#10b981;">${done}</div><div class="kpi-l">已領取</div></div>
-      <div class="kpi-mini"><div class="kpi-n" style="color:#94a3b8;">${pending}</div><div class="kpi-l">未報到</div></div>
+      <div class="kpi-mini"><div class="kpi-n" style="color:#E1F0FF;">${pending}</div><div class="kpi-l">未報到</div></div>
       <div class="kpi-mini"><div class="kpi-n" style="color:#ef4444;">${referred}</div><div class="kpi-l">轉診</div></div>
     </div>
   </div>
