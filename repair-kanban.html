@@ -486,13 +486,13 @@ input:checked+.slider::before{transform:translateX(20px);}
 <div class="page" id="page-interview">
   <div class="page-inner">
     <div class="page-header">
-      <h2>訪問記錄</h2>
+      <h2>👋 訪問記錄</h2>
       <p>輸入品項搜尋送修家電，綁定訪問內容</p>
     </div>
 
     <!-- Search & bind -->
     <div class="card-box">
-      <h3>搜尋送修家電</h3>
+      <h3>🔍 搜尋送修家電</h3>
       <div class="form-row">
         <label>品項 / 姓名 /<br>編號<div class="form-sublabel">輸入關鍵字</div></label>
         <input class="form-inp" id="iv-search" type="text" placeholder="電風扇、王小明…" oninput="ivSearch()" autocomplete="off">
@@ -509,7 +509,7 @@ input:checked+.slider::before{transform:translateX(20px);}
       </div>
 
       <div class="card-box" id="iv-questions">
-        <h3>訪問問題</h3>
+        <h3>📝 訪問問題</h3>
         <div class="form-row">
           <label>來源<div class="form-sublabel">為什麼知道我們的活動？</div></label>
           <textarea class="form-ta" id="iv-q1" placeholder="例：朋友介紹、社群媒體、路過看到…"></textarea>
@@ -539,7 +539,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 <div class="page" id="page-settings">
   <div class="page-inner">
     <div class="page-header">
-      <h2>設定</h2>
+      <h2>⚙️ 設定</h2>
       <p>應用程式功能設定</p>
     </div>
 
@@ -593,8 +593,8 @@ input:checked+.slider::before{transform:translateX(20px);}
 <div class="page" id="page-stats">
   <div class="page-inner">
     <div class="page-header">
-      <h2>統計</h2>
-      <p>維修與訪問摘要</p>
+      <h2>📊 統計</h2>
+      <p>維修工單與訪問資料摘要</p>
     </div>
     <div id="stats-content"></div>
   </div>
@@ -666,17 +666,17 @@ const STAGES = [
 
 const PALETTE = [
   // 未報到 #42B677 green
-  {sc:'#fff',   sbg:'#42B677', colBg:'transparent', circleBg:'#d4f0e2', circleColor:'#1a7a47'},
+  {sc:'#fff',    sbg:'#42B677', colBg:'transparent', circleBg:'#d4f0e2', circleColor:'#1a6b3c'},
   // 已報到等待維修 #FFC228 amber
-  {sc:'#1a1a1a',sbg:'#FFC228', colBg:'transparent', circleBg:'#fff0b3', circleColor:'#8a6200'},
-  // 維修中 #FFF8F0 peach (light — use dark text)
-  {sc:'#8a5200',sbg:'#FFC07A', colBg:'transparent', circleBg:'#FFE8CC', circleColor:'#8a5200'},
-  // 待領取 #9FC4E8 blue
-  {sc:'#1a3a5c',sbg:'#9FC4E8', colBg:'transparent', circleBg:'#d6eaf8', circleColor:'#1a3a5c'},
+  {sc:'#5a3c00', sbg:'#FFC228', colBg:'transparent', circleBg:'#fff0b3', circleColor:'#7a5000'},
+  // 維修中 #FFF8F0 peach (very light header → use muted warm bar)
+  {sc:'#7a4500', sbg:'#FFCF99', colBg:'transparent', circleBg:'#FFF8F0', circleColor:'#7a4500'},
+  // 待領取 #9FC4E8 sky blue
+  {sc:'#14375a', sbg:'#9FC4E8', colBg:'transparent', circleBg:'#d6eaf8', circleColor:'#14375a'},
   // 已領取 #3845AD indigo
-  {sc:'#fff',   sbg:'#3845AD', colBg:'transparent', circleBg:'#c5c9f0', circleColor:'#1e2660'},
-  // 轉診或待確認 #F6F4EB cream (light — use dark text)
-  {sc:'#4a4535',sbg:'#C8C3A0', colBg:'transparent', circleBg:'#F6F4EB', circleColor:'#4a4535'},
+  {sc:'#fff',    sbg:'#3845AD', colBg:'transparent', circleBg:'#c5c9f0', circleColor:'#1e2660'},
+  // 轉診或待確認 #F6F4EB cream (very light → muted bar)
+  {sc:'#3d3a2e', sbg:'#B8B49A', colBg:'transparent', circleBg:'#F6F4EB', circleColor:'#3d3a2e'},
 ];
 
 // ══ STATE ══
@@ -711,7 +711,10 @@ function saveSettings(){
   autoSync = document.getElementById('toggle-autosync').checked;
   localStorage.setItem('autoSync', autoSync);
   applyInterviewSetting();
-  if(autoSync) startAuto(); else clearInterval(refreshTimer);
+  if(autoSync&&GAS_URL&&!GAS_URL.includes('YOUR_DEPLOYMENT_ID')) startAuto();
+  else clearInterval(refreshTimer);
+  // Reload data with new URL
+  if(GAS_URL&&!GAS_URL.includes('YOUR_DEPLOYMENT_ID')) fetchData();
 }
 function applyInterviewSetting(){
   // show/hide interview tab indicator
@@ -767,6 +770,10 @@ function mapCard(raw){
 
 // ══ FETCH ══
 function fetchData(){
+  // Guard: if URL is placeholder, skip fetch and show demo
+  if(!GAS_URL||GAS_URL.includes('YOUR_DEPLOYMENT_ID')){
+    loadDemo();return;
+  }
   setSyncState('syncing','同步中…');setLBar(true);
   const cb='_gc_'+Date.now();
   const s=document.createElement('script');
@@ -786,7 +793,7 @@ function fetchData(){
     if(!done){done=true;try{document.head.removeChild(s);}catch(e){}delete window[cb];
     setSyncState('err','連線失敗');setLBar(false);if(!allCards.length)loadDemo();}
   };
-  setTimeout(()=>{if(!done)s.onerror();},12000);
+  setTimeout(()=>{if(!done)s.onerror();},8000); // 8s timeout
   document.head.appendChild(s);
 }
 
@@ -1296,20 +1303,11 @@ function renderStats(){
     ${colChart(catList.slice(0,7),maxCat,()=>'#3b82f6')}
   </div>`:''}
 
-  <!-- ⑤ 送修品項 TOP 8 水平條 -->
-  ${itemList.length?`<div class="stat-card" style="margin-bottom:12px;">
-    <div class="stat-card-title">送修品項分析（前 8）</div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;">
-      ${itemList.map(([k,v],i)=>`
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-          <span style="color:var(--text2);font-weight:500;">${escH(k)}</span>
-          <span style="font-weight:600;font-family:'DM Mono',monospace;">${v}</span>
-        </div>
-        <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-          <div style="height:100%;width:${Math.round(v/maxItem*100)}%;background:${['#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f59e0b'][i%8]};border-radius:4px;"></div>
-        </div>
-      </div>`).join('')}
+  <!-- ⑤ 送修品項 矩形樹狀圖 -->
+  ${Object.keys(itemMap).length?`<div class="stat-card" style="margin-bottom:12px;">
+    <div class="stat-card-title">送修品項分析</div>
+    <div style="width:100%;height:200px;position:relative;border-radius:10px;overflow:hidden;margin-top:10px;">
+      ${renderTreemap(itemMap)}
     </div>
   </div>`:''}
 
@@ -1393,8 +1391,15 @@ document.getElementById('q').addEventListener('input',function(){searchQ=this.va
 
 // ══ INIT ══
 loadSettings();
-if(GAS_URL&&GAS_URL.includes('script.google.com')){fetchData();startAuto();}
-else{setSyncState('err','請設定 GAS URL');loadDemo();}
+// Check for placeholder URL — treat as unconfigured
+const _isRealGasUrl = GAS_URL &&
+  GAS_URL.includes('script.google.com') &&
+  !GAS_URL.includes('YOUR_DEPLOYMENT_ID');
+if(_isRealGasUrl){fetchData();startAuto();}
+else{
+  setSyncState('err','請設定 GAS URL');
+  loadDemo();
+}
 renderInterviewLog();
 
 // ── SCROLL SPY: show title in topbar when repair header scrolls out ──
