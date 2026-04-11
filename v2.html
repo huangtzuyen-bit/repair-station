@@ -681,7 +681,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 // CONFIG (可在設定頁修改)
 // ═══════════════════════════════════════════
 let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbzQpUOVfsBfHcqBsa8cshNfLNsyDKlnemRDkU9NhXj92A19eInyRv6R4bM0ABdlmWFm/exec';
-
+exec
 const STAGES = [
   {key:'未報到',        ci:0},
   {key:'已報到等待維修',ci:1},
@@ -1028,27 +1028,30 @@ function openModal(id,stageKey){
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.model||'')}</span>
+      </div>
       <div class="trow">
         <span class="tl">出廠日期</span>
         <span class="tv-edit" id="ei-mfgdate-${escH(sid)}"
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.mfgDate||'')}</span>
+      </div>
       <div class="trow">
         <span class="tl">價格</span>
         <span class="tv-edit" id="ei-price-${escH(sid)}"
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.price||'')}</span>
+      </div>
       <div class="trow">
         <span class="tl">配件</span>
-        <span class="tv-edit" id="ei-price-${escH(sid)}"
-          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
-        >${escH(c.accessories||'')}</span>
+        <div class="acc-wrap" id="acc-${escH(sid)}">${accHtml}</div>
       </div>
-      </div>  
+      <div class="trow">
+        <span class="tl">是否拆過</span>
+        <span class="tv">${boolPill(c.opened)}</span>
       </div>
+    </div>
     <div class="msec">
       <div class="msec-title">故障說明</div>
       <div class="trow">
@@ -1061,9 +1064,6 @@ function openModal(id,stageKey){
       <div class="trow"><span class="tl">產品備註</span><span class="tv note-text">${escH(c.itemNote||'—')}</span></div>
       <div class="trow"><span class="tl">備註標籤</span><span class="tv">${escH(c.noteTag||'—')}</span></div>
     </div>
-        </div>
-            </div>
-            </div>
     <div class="msec">
       <div class="msec-title">維修紀錄</div>
       <div class="trow">
@@ -1191,7 +1191,7 @@ function saveCard(id,sid){
   const g=eid=>{const el=document.getElementById(eid);return el?el.value.trim():'';}
   const accWrap=document.getElementById('acc-'+sid);
   const accOn=accWrap?[...accWrap.querySelectorAll('.acc-item.on')].map(el=>el.dataset.acc).join('、'):'';
-  const newId      = (()=>{const el=document.getElementById('ei-id-'+sid);return el?el.value.trim():c.id;})();
+  const newId      = (()=>{const el=document.getElementById('ei-id-'+sid);return el?el.value.trim():'';})() || c.id;
   const newName    = getEdit('ei-name-'+sid)     || c.name;
   const newPhone   = getEdit('ei-phone-'+sid)    || c.phone;
   const newModel   = getEdit('ei-model-'+sid)    || c.model;
