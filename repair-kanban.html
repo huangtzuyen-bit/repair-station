@@ -16,12 +16,8 @@
   --border2:#c9ccd8;
   --text:#111318;
   --text2:#2c2f3a;
-  --text3:#3a3d4a;
   --accent:#2DC76D;
-  --accent-dark:#1fa057;
-  --accent-bg:#edfaf3;
   --shadow:0 1px 3px rgba(28,35,80,.07),0 1px 8px rgba(28,35,80,.04);
-  --shadow-md:0 4px 18px rgba(28,35,80,.11);
   --tab-h:64px;
 }
 body{
@@ -32,21 +28,19 @@ body{
   min-height:100vh;
   padding-bottom:var(--tab-h);
   -webkit-tap-highlight-color:transparent;
-  overscroll-behavior:none;
 }
 
+/* ══ MODAL ══ */
 .moverlay{
   position:fixed;inset:0;z-index:200;
   background:rgba(20,25,60,.45);backdrop-filter:blur(3px);
   display:flex;align-items:flex-end;justify-content:center;
-  animation:fdi .18s ease;
 }
 @media(min-width:560px){.moverlay{align-items:center;padding:20px;}}
 .modal{
   background:var(--surface);border:1px solid var(--border2);
   border-radius:20px 20px 0 0;
   width:100%;max-height:92vh;overflow-y:auto;
-  animation:slu .22s cubic-bezier(.22,1,.36,1);
 }
 @media(min-width:560px){.modal{border-radius:16px;max-width:520px;max-height:88vh;}}
 
@@ -55,36 +49,33 @@ body{
   padding:14px 20px 12px;border-bottom:1px solid var(--border);
   position:sticky;top:0;background:var(--surface);z-index:1;
 }
-.m-title{font-size:16px;font-weight:600;line-height:1.3;}
 .mclose{
   width:30px;height:30px;border-radius:50%;
   border:1px solid var(--border2);background:var(--surface2);
-  color:var(--text2);font-size:15px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
 
 .m-body{padding:0 0 36px;}
-.m-hero-strip{padding:24px 20px 20px; border-radius:0;}
-.m-hero-id{font-size:32px;font-weight:700;line-height:1.2;}
+.m-hero-strip{padding:24px 20px 20px;}
+.m-hero-id{font-size:28px;font-weight:700;line-height:1.2;}
 
 .msec{padding:16px 20px 2px;}
 .msec-title{
-  display:flex;align-items:center;gap:7px;
-  font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--text2);margin-bottom:10px;
+  font-size:12px;font-weight:700;letter-spacing:.07em;
+  color:var(--text2);margin-bottom:10px;text-transform:uppercase;
 }
+/* 修改：客戶資料字體大小同標題 */
+.customer-name-large{font-size:28px;font-weight:700;margin-bottom:4px;}
+
 .trow{display:grid;grid-template-columns:90px 1fr;align-items:start;gap:4px 12px;padding:8px 0;}
 .tl{font-size:13px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;}
 .tv{font-size:15px;color:var(--text);line-height:1.5;word-break:break-word;font-weight:500;}
 
-/* 第三區塊字體放大 */
-.customer-info-val { font-size:32px; font-weight:700; color:var(--text); margin-bottom: 4px;}
-
 .save-btn{
-  display:block;width:calc(100% - 40px);margin: 20px auto;
-  padding:13px;font-size:15px;font-weight:600;
+  display:block;width:calc(100% - 40px);margin:20px auto 0;
+  padding:14px;font-size:15px;font-weight:600;
   background:var(--accent);color:#fff;border:none;border-radius:12px;
-  cursor:pointer;font-family:inherit;transition:all .15s;
+  cursor:pointer;font-family:inherit;
 }
 </style>
 </head>
@@ -93,8 +84,8 @@ body{
 <div id="modalOverlay" class="moverlay" style="display:none;">
   <div class="modal">
     <div class="m-head">
-      <div class="m-title">案件詳情</div>
-      <button class="mclose" onclick="closeModal()">✕</button>
+      <div style="font-weight:600;">案件詳情</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
     </div>
     <div class="m-body" id="modalContent"></div>
   </div>
@@ -103,7 +94,7 @@ body{
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhcnu7yFewxa5AokNDGeO7s6Z2qjxAhqYRVSCn5Gbvf8SjgNhAieosR7muXyTq2h-4/exec";
 
-const STAGE_COLORS = {
+const STAGE_CONFIG = {
   '未報到': '#E3E5EE',
   '已報到等待維修': '#FDE68A',
   '維修中': '#93C5FD',
@@ -112,57 +103,37 @@ const STAGE_COLORS = {
   '轉診或待確認': '#FCA5A5'
 };
 
-function openModal(data) {
+function openModal(card) {
   const content = document.getElementById('modalContent');
-  const bgColor = STAGE_COLORS[data.stage] || '#fff';
+  const bg = STAGE_CONFIG[card.stage] || '#f0f1f5';
   
   content.innerHTML = `
-    <div class="m-hero-strip" style="background: ${bgColor}">
-      <div class="m-hero-id">${data.endOfProduct} - ${data.name}</div>
+    <div class="m-hero-strip" style="background:${bg}">
+      <div class="m-hero-id">${card.endOfProduct} - ${card.name}</div>
     </div>
 
     <div class="msec">
       <div class="msec-title">客戶資料</div>
-      <div class="customer-info-val">${data.name}</div>
-      <div class="tv">${data.phone || ''}</div>
+      <div class="customer-name-large">${card.name}</div>
+      <div class="tv">${card.phone}</div>
     </div>
 
     <div class="msec">
-      <div class="msec-title">基本資訊</div>
-      <div class="trow"><div class="tl">品牌</div><div class="tv">${data.brand || '-'}</div></div>
-      <div class="trow"><div class="tl">型號</div><div class="tv">${data.model || '-'}</div></div>
-      <div class="trow"><div class="tl">故障描述</div><div class="tv">${data.faultDesc || '-'}</div></div>
+      <div class="msec-title">家電資訊</div>
+      <div class="trow"><div class="tl">品牌</div><div class="tv">${card.brand}</div></div>
+      <div class="trow"><div class="tl">型號</div><div class="tv">${card.model}</div></div>
+      <div class="trow"><div class="tl">故障描述</div><div class="tv">${card.faultDesc}</div></div>
     </div>
 
-    <div class="msec">
+    <div class="msec" style="border-top: 1px solid var(--border); margin-top: 10px; padding-top: 20px;">
       <div class="msec-title">維修紀錄</div>
       <div class="trow">
         <div class="tl">維修結果</div>
-        <div class="tv">${data.repairResult || '尚未填寫'}</div>
+        <div class="tv">${card.repairResult || '尚未填寫'}</div>
       </div>
       <div class="trow">
         <div class="tl">維修備註</div>
-        <div class="tv">${data.repairNote || '-'}</div>
+        <div class="tv">${card.repairNote || '-'}</div>
       </div>
       <div class="trow">
-        <div class="tl">維修人員</div>
-        <div class="tv">${data.repairman || '-'}</div>
-      </div>
-    </div>
-
-    <button class="save-btn" onclick="saveData()">儲存</button>
-  `;
-  document.getElementById('modalOverlay').style.display = 'flex';
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').style.display = 'none';
-}
-
-function saveData() {
-  // 儲存邏輯...
-  closeModal();
-}
-</script>
-</body>
-</html>
+        <div class
