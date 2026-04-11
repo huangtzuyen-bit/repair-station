@@ -698,7 +698,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 // ═══════════════════════════════════════════
 // CONFIG (可在設定頁修改)
 // ═══════════════════════════════════════════
-let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbyKKZOQ2yE9_Ee20oJQDoWWA1a1wYToaC02XjDDopPwEhtEO0Z-8-dW2P4TVMtEO1_1/exec';
+let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbz_vNZpm8GIjR4PKa5TewZ8kN3JBHG33EUkMkZSPEzwtI1GMEKIb_C-kKLncHcuXgM7/exec';
 
 const STAGES = [
   {key:'未報到',        ci:0},
@@ -1112,6 +1112,7 @@ function openModal(id,stageKey){
         >${escH(c.partCost||'')}</span>
       </div>
       <div class="trow"><span class="tl">其他備註</span><span class="tv">${escH(c.extraNote||'—')}</span></div>
+
     </div>
     <div class="msec">
       <div class="msec-title">📷 照片暫存</div>
@@ -1215,7 +1216,7 @@ function saveCard(id,sid){
   const g=eid=>{const el=document.getElementById(eid);return el?el.value.trim():'';}
   const accWrap=document.getElementById('acc-'+sid);
   const accOn=accWrap?[...accWrap.querySelectorAll('.acc-item.on')].map(el=>el.dataset.acc).join('、'):'';
-  const newId      = (()=>{const el=document.getElementById('ei-id-'+sid);return el?el.value.trim():'';})() || c.id;
+  const newId      = (()=>{const el=document.getElementById('ei-id-'+sid);return el?el.value.trim():c.id;})();
   const newName    = getEdit('ei-name-'+sid)     || c.name;
   const newPhone   = getEdit('ei-phone-'+sid)    || c.phone;
   const newModel   = getEdit('ei-model-'+sid)    || c.model;
@@ -1688,18 +1689,45 @@ function uploadPhotoToGAS(sid, zone, seqNum, dataUrl, origName){
   const filename = `${cardId}_${phone3}_照片${zone}_${seq}.${ext}`;
   // base64 資料（去掉 data:image/xxx;base64, 前綴）
   const base64 = dataUrl.split(',')[1];
+  const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
   showToast('📤 上傳照片中…');
-  fetch(GAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'uploadPhoto', folderId: DRIVE_FOLDER_ID, filename, base64, mimeType: 'image/jpeg' })
-  })
-  .then(r => r.json())
-  .then(resp => {
-    if(resp && resp.result === 'success') showToast('✓ 照片已上傳：' + filename);
-    else showToast('⚠ 照片上傳失敗');
-  })
-  .catch(() => showToast('⚠ 照片上傳失敗（網路錯誤）'));
+  // 用 JSONP 方式（避免 CORS），將 base64 以 POST form 方式送出
+  // GAS doGet 不適合傳大 base64，改用隱藏 form POST
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GAS_URL;
+  form.target = '_photo_upload_frame_' + Date.now();
+  form.style.display = 'none';
+  const addField = (name, value) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = name; inp.value = value;
+    form.appendChild(inp);
+  };
+  addField('action', 'uploadPhoto');
+  addField('folderId', DRIVE_FOLDER_ID);
+  addField('filename', filename);
+  addField('base64', base64);
+  addField('mimeType', mimeType);
+  // 建立隱藏 iframe 接收回應
+  const iframe = document.createElement('iframe');
+  iframe.name = form.target;
+  iframe.style.display = 'none';
+  iframe.onload = function(){
+    try {
+      const txt = iframe.contentDocument ? iframe.contentDocument.body.innerText : '';
+      const resp = JSON.parse(txt);
+      if(resp && resp.result === 'success') showToast('✓ 照片已上傳：' + filename);
+      else showToast('⚠ 照片上傳失敗：' + (resp.message||''));
+    } catch(e) {
+      // GAS redirect 後無法讀 iframe 內容屬正常（same-origin 限制），視為成功
+      showToast('✓ 照片已送出：' + filename);
+    }
+    setTimeout(()=>{ try{document.body.removeChild(iframe);}catch(e){} }, 3000);
+  };
+  document.body.appendChild(iframe);
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(()=>{ try{document.body.removeChild(form);}catch(e){} }, 1000);
 }
 
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
