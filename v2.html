@@ -148,7 +148,7 @@ body{
   padding:9px 13px;border-radius:10px 10px 0 0;
 }
 .cname{font-size:15px;font-weight:600;}
-.ccnt{font-size:13px;font-weight:600;padding:2px 9px;border-radius:20px}
+.ccnt{font-size:15px;font-weight:600;padding:2px 9px;border-radius:20px}
 .col-body{padding:9px 7px 11px;flex:1;min-height:70px;display:flex;flex-direction:column;gap:7px;}
 
 .kcard{
@@ -163,12 +163,12 @@ body{
 .knum-circle{
   width:40px;height:40px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:15px;font-weight:800;flex-shrink:0;
+  font-size:16px;font-weight:800;flex-shrink:0;
   font-family:'DM Mono',monospace;
 }
 .kcard-info{flex:1;min-width:0;}
-.k-product{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
-.k-name{font-size:14px;color:var(--text2);font-weight:500;}
+.k-product{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.k-name{font-size:13px;color:var(--text2);font-weight:500;}
 .empty-col{border-radius:9px;padding:18px 10px;text-align:center;font-size:12px;color:var(--text3);}
 
 /* ══ MODAL ══ */
@@ -194,8 +194,8 @@ body{
 .m-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:13px auto 0;}
 .m-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px 25px;border-bottom:1px solid var(--border);
-  position:sticky;top:0;background:var(--surface);z-index:1;
+  padding:30px 20px 25px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--surface);z-index:1;box-shadow:var(--shadow);
 }
 .m-head-l{display:flex;align-items:center;gap:11px;}
 .m-num{font-size:12px;font-family:'DM Mono',monospace;color:var(--text3);}
@@ -633,7 +633,7 @@ input:checked+.slider::before{transform:translateX(20px);}
     <div class="m-handle"></div>
     <div class="m-head">
       <div class="m-head-l">
-        <div id="m-circle" class="knum-circle" style="width:38px;height:38px;font-size:12px;"></div>
+        <div id="m-circle" class="knum-circle" style="width:40px;height:40px;font-size:17px;"></div>
         <div id="m-title" class="m-title"></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
@@ -975,7 +975,7 @@ function openModal(id,stageKey){
         <div class="tl">編號</div>
         <span class="tv" style="display:flex;align-items:center;gap:6px;">
           <span id="id-text-${escH(sid)}" style="font-family:'DM Mono',monospace;font-weight:600;">${escH(c.id||'—')}</span>
-          <button onclick="openIdEdit('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0;">更正</button>
+          <button onclick="openIdEdit('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:999px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0;">更正</button>
           <input type="text" id="ei-id-${escH(sid)}" value="${escH(c.id||'')}" style="display:none;font-family:'DM Mono',monospace;font-size:14px;padding:3px 8px;border:1.5px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--text);outline:none;width:120px;"
             onkeydown="if(event.key==='Enter'){closeIdEdit('${escH(sid)}');}" onblur="closeIdEdit('${escH(sid)}')">
         </span>
@@ -1005,7 +1005,7 @@ function openModal(id,stageKey){
         <span class="tl">分類</span>
         <span class="tv" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span id="bigcat-text-${escH(sid)}">${escH(c.bigCat||'—')}</span>
-          <button onclick="openCatSel('${escH(sid)}')" style="font-size:11px;padding:1px 6px 1px 6px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0;">更正</button>
+          <button onclick="openCatSel('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:999px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0;">更正</button>
           <select class="msel-result" id="mi-bigcat-${escH(sid)}" style="display:none;width:100%;margin-top:4px;"
             onchange="onCatChange('${escH(sid)}');markDirty('${escH(sid)}')">
             ${['', ...dropdownCache.catOpts].map(o=>`<option value="${escH(o)}"${(c.bigCat||'')===o?' selected':''}>${o||'— 選擇分類 —'}</option>`).join('')}
@@ -1027,7 +1027,6 @@ function openModal(id,stageKey){
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.model||'')}</span>
-      </div>
       <div class="trow">
         <span class="tl">出廠日期</span>
         <span class="tv-edit" id="ei-mfgdate-${escH(sid)}"
