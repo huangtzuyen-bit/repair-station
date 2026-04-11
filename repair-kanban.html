@@ -231,13 +231,13 @@ body{
   color:var(--text2);margin-bottom:10px;
 }
 .msec-title::after{content:none;} /* ← 移除橫線 */
-.msec-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.msec-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 
 /* 2-col rows: no horizontal dividers, just vertical space */
 .trow{display:grid;grid-template-columns:90px 1fr;align-items:start;gap:4px 12px;padding:8px 0;}
 .trow:last-child{}  /* no border */
 .trow.edit{grid-template-columns:1fr;gap:5px;}
-.tl{font-size:13px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;}
+.tl{font-size:15px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;}
 .trow.edit .tl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);}
 .tv{font-size:15px;color:var(--text);line-height:1.5;word-break:break-word;font-weight:500;}
 .tv.bold{font-weight:700;}
@@ -292,7 +292,7 @@ body{
 
 /* 2-col form layout */
 .form-row{
-  display:grid;grid-template-columns:100px 1fr;
+  display:grid;grid-template-columns:150px 1fr;
   align-items:start;gap:10px 14px;
   margin-bottom:14px;
 }
@@ -378,12 +378,12 @@ input:checked+.slider::before{transform:translateX(20px);}
   border-radius:14px;padding:16px;box-shadow:var(--shadow);
 }
 .stat-card-title{
-  font-size:12px;font-weight:700;color:var(--text3);
+  font-size:14px;font-weight:700;color:var(--text3);
   letter-spacing:.07em;text-transform:uppercase;
   margin-bottom:12px;
   display:flex;align-items:center;gap:6px;
 }
-.stat-card-title::before{content:'';display:inline-block;width:3px;height:12px;background:var(--accent);border-radius:2px;}
+.stat-card-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
 .kpi-mini{text-align:center;}
 .kpi-n{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;margin-bottom:2px;}
 .kpi-l{font-size:11px;color:var(--text3);}
@@ -461,13 +461,13 @@ input:checked+.slider::before{transform:translateX(20px);}
 <div class="page" id="page-interview">
   <div class="page-inner">
     <div class="page-header">
-      <h2>👋 訪問記錄</h2>
+      <h2>訪問記錄</h2>
       <p>輸入品項搜尋送修家電，綁定訪問內容</p>
     </div>
 
     <!-- Search & bind -->
     <div class="card-box">
-      <h3>🔍 搜尋送修家電</h3>
+      <h3>搜尋送修家電</h3>
       <div class="form-row">
         <label>品項 / 姓名 /<br>編號<div class="form-sublabel">輸入關鍵字</div></label>
         <input class="form-inp" id="iv-search" type="text" placeholder="電風扇、王小明…" oninput="ivSearch()" autocomplete="off">
@@ -484,7 +484,7 @@ input:checked+.slider::before{transform:translateX(20px);}
       </div>
 
       <div class="card-box" id="iv-questions">
-        <h3>📝 訪問問題</h3>
+        <h3>訪問問題</h3>
         <div class="form-row">
           <label>來源<div class="form-sublabel">為什麼知道我們的活動？</div></label>
           <textarea class="form-ta" id="iv-q1" placeholder="例：朋友介紹、社群媒體、路過看到…"></textarea>
