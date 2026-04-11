@@ -104,7 +104,7 @@ body{
   background:var(--surface);
   /* no bottom border per request */
 }
-.repair-header h1{font-size:22px;font-weight:900;color:var(--text);font-family:'Noto Sans TC',sans-serif;letter-spacing:-.01em;}
+.repair-header h1{font-size:22px;font-weight:900;color:var(--text);font-family:'Noto Sans TC',sans-serif;}
 .repair-header-right{display:flex;align-items:center;gap:8px;}
 
 /* ── search bar (pill shape, above chips) ── */
@@ -213,7 +213,7 @@ body{
   padding:24px 20px 20px;
   border-radius:0;
 }
-.m-hero-id{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:2px;line-height:1;}
+.m-hero-id{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
 
 /* quick stage select in header */
 .m-quick-stage{
@@ -227,7 +227,7 @@ body{
 .msec{padding:16px 20px 2px;}
 .msec-title{
   display:flex;align-items:center;gap:7px;
-  font-size:15px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  font-size:15px;letter-spacing:.07em;text-transform:uppercase;
   color:var(--text2);margin-bottom:10px;
 }
 .msec-title::after{content:none;} /* ← 移除橫線 */
@@ -249,7 +249,7 @@ body{
 .acc-wrap{display:flex;flex-wrap:wrap;gap:6px;padding-top:3px;}
 .acc-item{font-size:13px;padding:5px 12px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;user-select:none;}
 .acc-item.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:500;}
-.note-text{font-size:15px;color:var(--text2);line-height:1.6;}
+.note-text{font-size:15px;color:var(--text2);line-height:1.5;}
 .msel,.mta,.minput{
   width:100%;padding:11px 13px;font-size:15px;
   border:1px solid var(--border2);border-radius:10px;
@@ -298,7 +298,7 @@ body{
 }
 .form-row label{
   font-size:14px;font-weight:600;color:var(--text);
-  padding-top:10px;line-height:1.4;
+  padding-top:10px;line-height:1.5;
 }
 .form-row .form-sublabel{font-size:12px;color:var(--text3);font-weight:400;margin-top:2px;}
 .form-inp,.form-ta,.form-sel{
@@ -385,13 +385,13 @@ input:checked+.slider::before{transform:translateX(20px);}
 }
 .stat-card-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
 .kpi-mini{text-align:center;}
-.kpi-n{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;margin-bottom:2px;}
+.kpi-n{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.5PX;margin-bottom:2px;}
 .kpi-l{font-size:11px;color:var(--text3);}
 
 
 /* legacy stats (still used for bar-list fallback) */
 .stats-section{margin-bottom:14px;}
-.stats-section h3{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.stats-section h3{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:8px;}
 .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .metric-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 8px;text-align:center;box-shadow:var(--shadow);}
 .metric-num{font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px;}
