@@ -88,7 +88,7 @@ body{
 .tab{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:4px;cursor:pointer;transition:color .15s;
-  color:var(--text2);font-size:12px;font-weight:500;
+  color:var(--text2);font-size:12px;font-weight:600;
   border:none;background:none;font-family:inherit;
   padding:6px 0 4px;
 }
@@ -147,9 +147,9 @@ body{
   display:flex;align-items:center;justify-content:space-between;
   padding:9px 13px;border-radius:10px 10px 0 0;
 }
-.cname{font-size:15px;font-weight:700;}
-.ccnt{font-size:13px;font-weight:700;padding:2px 9px;border-radius:20px}
-.col-body{border-radius:0 0 11px 11px;padding:9px 7px 11px;flex:1;min-height:70px;display:flex;flex-direction:column;gap:7px;}
+.cname{font-size:15px;font-weight:600;}
+.ccnt{font-size:13px;font-weight:600;padding:2px 9px;border-radius:20px}
+.col-body{padding:9px 7px 11px;flex:1;min-height:70px;display:flex;flex-direction:column;gap:7px;}
 
 .kcard{
   background:var(--surface);border:1px solid rgba(0,0,0,.06);
@@ -227,7 +227,7 @@ body{
 .msec{padding:16px 20px 2px;}
 .msec-title{
   display:flex;align-items:center;gap:7px;
-  font-size:15px;text-transform:uppercase;
+  font-size:15px;font-weight:600;text-transform:uppercase;
   color:var(--text2);margin-bottom:10px;
 }
 .msec-title::after{content:none;} /* ← 移除橫線 */
@@ -237,7 +237,7 @@ body{
 .trow{display:grid;grid-template-columns:90px 1fr;align-items:start;gap:4px 12px;padding:8px 0;}
 .trow:last-child{}  /* no border */
 .trow.edit{grid-template-columns:1fr;gap:5px;}
-.tl{font-size:15px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;margin-bottom:10px}
+.tl{font-size:15px;color:var(--text2);font-weight:800;padding-top:2px;line-height:1.5}
 .trow.edit .tl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);}
 .tv{font-size:15px;color:var(--text2);font-weight:500;padding-top:2px;line-height:1.5;}
 .tv.bold{font-weight:700;}
@@ -548,7 +548,7 @@ input:checked+.slider::before{transform:translateX(20px);}
     <div class="card-box">
       <h3 style="margin-bottom:14px;">資料來源</h3>
       <div class="form-row">
-        <label>Google Apps Script URL</label>
+        <label>Google Script URL</label>
         <input class="form-inp" id="gas-url-input" placeholder="https://script.google.com/macros/s/…/exec" oninput="saveSettings()">
       </div>
       <div style="font-size:12px;color:var(--text3);margin-top:4px;">修改後重新整理即生效</div>
