@@ -465,6 +465,24 @@ input:checked+.slider::before{transform:translateX(20px);}
 
 /* ══ STAGE PALETTE ══ */
 /* defined in JS for dynamic use */
+
+/* ══ PHOTO SECTION ══ */
+.photo-section{padding:16px 20px 8px;}
+.photo-group{margin-bottom:16px;}
+.photo-group-title{font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}
+.photo-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.photo-thumb-wrap{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);flex-shrink:0;}
+.photo-thumb-wrap img{width:100%;height:100%;object-fit:cover;cursor:pointer;transition:opacity .15s;}
+.photo-thumb-wrap img:hover{opacity:.85;}
+.photo-del-btn{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(239,68,68,.85);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.photo-add-btn{width:72px;height:72px;border-radius:8px;border:2px dashed var(--border2);background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:4px;color:var(--text2);font-size:11px;font-weight:500;flex-shrink:0;transition:all .15s;}
+.photo-add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+.photo-add-btn svg{width:22px;height:22px;}
+.photo-uploading{opacity:.5;pointer-events:none;}
+/* lightbox */
+.photo-lightbox{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;}
+.photo-lightbox img{max-width:92vw;max-height:88vh;border-radius:8px;object-fit:contain;}
+.photo-lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 </style>
 </head>
 <body>
@@ -680,7 +698,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 // ═══════════════════════════════════════════
 // CONFIG (可在設定頁修改)
 // ═══════════════════════════════════════════
-let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycby0GBZlagoKvFMZr5-wAIlYYbfp53GKNCXXBsuA8Qh3gSzwSn8BhECj0CjrGRZsNI8/exec';
+let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbyKKZOQ2yE9_Ee20oJQDoWWA1a1wYToaC02XjDDopPwEhtEO0Z-8-dW2P4TVMtEO1_1/exec';
 
 const STAGES = [
   {key:'未報到',        ci:0},
@@ -1028,30 +1046,27 @@ function openModal(id,stageKey){
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.model||'')}</span>
-      </div>
       <div class="trow">
         <span class="tl">出廠日期</span>
         <span class="tv-edit" id="ei-mfgdate-${escH(sid)}"
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.mfgDate||'')}</span>
-      </div>
       <div class="trow">
         <span class="tl">價格</span>
         <span class="tv-edit" id="ei-price-${escH(sid)}"
           onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.price||'')}</span>
-      </div>
       <div class="trow">
         <span class="tl">配件</span>
-        <div class="acc-wrap" id="acc-${escH(sid)}">${accHtml}</div>
+        <span class="tv-edit" id="ei-price-${escH(sid)}"
+          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+        >${escH(c.accessories||'')}</span>
       </div>
-      <div class="trow">
-        <span class="tl">是否拆過</span>
-        <span class="tv">${boolPill(c.opened)}</span>
+      </div>  
       </div>
-    </div>
     <div class="msec">
       <div class="msec-title">故障說明</div>
       <div class="trow">
@@ -1064,6 +1079,9 @@ function openModal(id,stageKey){
       <div class="trow"><span class="tl">產品備註</span><span class="tv note-text">${escH(c.itemNote||'—')}</span></div>
       <div class="trow"><span class="tl">備註標籤</span><span class="tv">${escH(c.noteTag||'—')}</span></div>
     </div>
+        </div>
+            </div>
+            </div>
     <div class="msec">
       <div class="msec-title">維修紀錄</div>
       <div class="trow">
@@ -1094,6 +1112,12 @@ function openModal(id,stageKey){
         >${escH(c.partCost||'')}</span>
       </div>
       <div class="trow"><span class="tl">其他備註</span><span class="tv">${escH(c.extraNote||'—')}</span></div>
+    </div>
+    <div class="msec">
+      <div class="msec-title">📷 照片暫存</div>
+      ${buildPhotoSection(c, sid, '外觀', 2)}
+      ${buildPhotoSection(c, sid, '配件', 2)}
+      ${buildPhotoSection(c, sid, '內部', 2)}
     </div>
     <div style="padding:16px 20px 8px;display:flex;justify-content:center;">
       <button class="save-btn-pill" id="save-btn-${escH(sid)}"
@@ -1563,6 +1587,121 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
+// ══ PHOTO SECTION ══
+const DRIVE_FOLDER_ID = '1SHI--kvSIul84RBgOC8efGtU7fuFmBTl';
+
+// 照片記憶體快取: photoCache[sid][zone] = [{name, dataUrl}]
+const photoCache = {};
+
+function getPhotoCacheKey(sid, zone){ return sid + '__' + zone; }
+
+function buildPhotoSection(c, sid, zone, maxCount){
+  const key = getPhotoCacheKey(sid, zone);
+  if(!photoCache[key]) photoCache[key] = [];
+  const photos = photoCache[key];
+  const thumbsHtml = photos.map((p, i) => `
+    <div class="photo-thumb-wrap" id="pt-${escH(sid)}-${zone}-${i}">
+      <img src="${p.dataUrl}" alt="${p.name}" onclick="openLightbox('${p.dataUrl}')">
+      <button class="photo-del-btn" onclick="deletePhoto('${escH(sid)}','${zone}',${i})" title="刪除">×</button>
+    </div>`).join('');
+
+  const canAdd = photos.length < maxCount;
+  const addBtn = canAdd ? `
+    <div class="photo-add-btn" onclick="triggerPhotoInput('${escH(sid)}','${zone}',${maxCount})" title="新增照片（相簿或相機）">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20.5 7H18l-2-3H8L6 7H3.5A1.5 1.5 0 002 8.5v11A1.5 1.5 0 003.5 21h17a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0020.5 7z"/></svg>
+      <span>照片${zone}</span>
+    </div>` : '';
+
+  return `<div class="photo-group">
+    <div class="photo-group-title">照片${zone}</div>
+    <div class="photo-thumbs" id="photo-thumbs-${escH(sid)}-${zone}">
+      ${thumbsHtml}${addBtn}
+    </div>
+  </div>`;
+}
+
+function triggerPhotoInput(sid, zone, maxCount){
+  const key = getPhotoCacheKey(sid, zone);
+  if(!photoCache[key]) photoCache[key] = [];
+  if(photoCache[key].length >= maxCount){ showToast('最多 '+maxCount+' 張'); return; }
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.capture = 'environment'; // 優先相機，相簿也可選
+  inp.onchange = function(){
+    if(!inp.files || !inp.files[0]) return;
+    const file = inp.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const dataUrl = e.target.result;
+      photoCache[key].push({ dataUrl, file });
+      refreshPhotoThumbs(sid, zone, maxCount);
+      uploadPhotoToGAS(sid, zone, photoCache[key].length, dataUrl, file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function refreshPhotoThumbs(sid, zone, maxCount){
+  const key = getPhotoCacheKey(sid, zone);
+  const photos = photoCache[key] || [];
+  const container = document.getElementById('photo-thumbs-'+sid+'-'+zone);
+  if(!container) return;
+  const thumbs = photos.map((p, i) => `
+    <div class="photo-thumb-wrap">
+      <img src="${p.dataUrl}" onclick="openLightbox('${p.dataUrl}')">
+      <button class="photo-del-btn" onclick="deletePhoto('${sid}','${zone}',${i})">×</button>
+    </div>`).join('');
+  const canAdd = photos.length < maxCount;
+  const addBtn = canAdd ? `
+    <div class="photo-add-btn" onclick="triggerPhotoInput('${sid}','${zone}',${maxCount})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20.5 7H18l-2-3H8L6 7H3.5A1.5 1.5 0 002 8.5v11A1.5 1.5 0 003.5 21h17a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0020.5 7z"/></svg>
+      <span>照片${zone}</span>
+    </div>` : '';
+  container.innerHTML = thumbs + addBtn;
+}
+
+function deletePhoto(sid, zone, idx){
+  const key = getPhotoCacheKey(sid, zone);
+  if(!photoCache[key]) return;
+  photoCache[key].splice(idx, 1);
+  refreshPhotoThumbs(sid, zone, 2);
+}
+
+function openLightbox(dataUrl){
+  const lb = document.createElement('div');
+  lb.className = 'photo-lightbox';
+  lb.innerHTML = `<img src="${dataUrl}"><button class="photo-lightbox-close" onclick="this.parentNode.remove()">×</button>`;
+  lb.onclick = function(e){ if(e.target===lb) lb.remove(); };
+  document.body.appendChild(lb);
+}
+
+function uploadPhotoToGAS(sid, zone, seqNum, dataUrl, origName){
+  if(!GAS_URL || !GAS_URL.includes('script.google.com')){ showToast('⚠ 未設定 GAS URL，照片僅暫存於本機'); return; }
+  // 取得卡片資訊來組命名
+  const c = allCards.find(x => String(x.id) === String(sid)) || allCards.find(x => !x.id);
+  const cardId = c ? (c.id || '') : '';
+  const phone3 = c ? (c.phone3 || '') : '';
+  const ext = (origName.match(/\.([a-z0-9]+)$/i)||['','jpg'])[1];
+  const seq = String(seqNum).padStart(2,'0');
+  const filename = `${cardId}_${phone3}_照片${zone}_${seq}.${ext}`;
+  // base64 資料（去掉 data:image/xxx;base64, 前綴）
+  const base64 = dataUrl.split(',')[1];
+  showToast('📤 上傳照片中…');
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'uploadPhoto', folderId: DRIVE_FOLDER_ID, filename, base64, mimeType: 'image/jpeg' })
+  })
+  .then(r => r.json())
+  .then(resp => {
+    if(resp && resp.result === 'success') showToast('✓ 照片已上傳：' + filename);
+    else showToast('⚠ 照片上傳失敗');
+  })
+  .catch(() => showToast('⚠ 照片上傳失敗（網路錯誤）'));
+}
+
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ══ DEMO ══
