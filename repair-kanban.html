@@ -666,7 +666,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 // ═══════════════════════════════════════════
 // CONFIG (可在設定頁修改)
 // ═══════════════════════════════════════════
-let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbwwECvTabwZYB1feKto-pR3APRtPJfVJc1rGxegmwB_T1YWDpXfCgO3qVXAg1cg_1uQ/exec';
+let GAS_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbzRcQ9i3_LsusUDhpNIZLPGYjfd9xR1KD9YMLymUfC6e3hHc2bewv6kTucDlkRc1w0N/exec';
 
 const STAGES = [
   {key:'未報到',        ci:0},
@@ -973,42 +973,42 @@ function openModal(id,stageKey){
       <div class="trow"><span class="tl">End of 產品</span><span class="tv">${escH(c.endOfProduct||'—')}</span></div>
       <div class="trow">
         <span class="tl">分類</span>
-        <select class="msel-result" id="mi-bigcat-${escH(sid)}"
-          onchange="onCatChange('${escH(sid)}');markDirty('${escH(sid)}')">
-          ${['', ...dropdownCache.catOpts].map(o=>`<option value="${escH(o)}"${(c.bigCat||'')=== o?' selected':''}>${o||'— 選擇分類 —'}</option>`).join('')}
-        </select>
+        <span class="tv" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span id="bigcat-text-${escH(sid)}">${escH(c.bigCat||'—')}</span>
+          <button onclick="openCatSel('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;">更正</button>
+          <select class="msel-result" id="mi-bigcat-${escH(sid)}" style="display:none;margin-top:4px;width:100%;"
+            onchange="onCatChange('${escH(sid)}');markDirty('${escH(sid)}')">
+            ${['', ...dropdownCache.catOpts].map(o=>`<option value="${escH(o)}"${(c.bigCat||'')===o?' selected':''}>${o||'— 選擇分類 —'}</option>`).join('')}
+          </select>
+        </span>
       </div>
       <div class="trow">
         <span class="tl">品項</span>
-        <div id="item-wrap-${escH(sid)}">
-          ${(()=>{const opts=dropdownCache.itemOpts[c.bigCat||'']||[];if(!opts.length)return`<select class="msel-result" id="mi-item-${escH(sid)}" style="display:none;"></select>`;return`<select class="msel-result" id="mi-item-${escH(sid)}" onchange="markDirty('${escH(sid)}')">${['',...opts].map(o=>`<option value="${escH(o)}"${(c.item||'')=== o?' selected':''}>${o||'— 選擇品項 —'}</option>`).join('')}</select>`;})()}
-        </div>
+        <span class="tv" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span id="item-text-${escH(sid)}">${escH(c.item||'—')}</span>
+          <button onclick="openItemSel('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;">更正</button>
+          <div id="item-wrap-${escH(sid)}" style="display:none;width:100%;margin-top:4px;">${(()=>{const opts=dropdownCache.itemOpts[c.bigCat||'']||[];if(!opts.length)return`<select class="msel-result" id="mi-item-${escH(sid)}"><option value="">— 請先選分類 —</option></select>`;return`<select class="msel-result" id="mi-item-${escH(sid)}" onchange="markDirty('${escH(sid)}')">${['',...opts].map(o=>`<option value="${escH(o)}"${(c.item||'')===o?' selected':''}>${o||'— 選擇品項 —'}</option>`).join('')}</select>`;})()}</div>
+        </span>
       </div>
-      <div class="trow">
-        <span class="tl">品牌</span>
-        <span class="tv">${escH(c.brand||'—')}</span>
-      </div>
+      <div class="trow"><span class="tl">品牌</span><span class="tv">${escH(c.brand||'—')}</span></div>
       <div class="trow">
         <span class="tl">型號</span>
         <span class="tv-edit" id="ei-model-${escH(sid)}"
-          onclick="startEdit(this)"
-          onblur="stopEdit(this,'${escH(sid)}')"
+          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.model||'')}</span>
       </div>
       <div class="trow">
         <span class="tl">出廠日期</span>
         <span class="tv-edit" id="ei-mfgdate-${escH(sid)}"
-          onclick="startEdit(this)"
-          onblur="stopEdit(this,'${escH(sid)}')"
+          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.mfgDate||'')}</span>
       </div>
       <div class="trow">
         <span class="tl">價格</span>
         <span class="tv-edit" id="ei-price-${escH(sid)}"
-          onclick="startEdit(this)"
-          onblur="stopEdit(this,'${escH(sid)}')"
+          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
         >${escH(c.price||'')}</span>
       </div>
@@ -1093,13 +1093,35 @@ function onResultChange(sid){
   wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" onchange="markDirty('${sid}')">${['', ...opts].map(o=>`<option value="${o}">${o||'— 選擇說明 —'}</option>`).join('')}</select>`;
 }
 
+// ── open cat/item selectors ──
+function openCatSel(sid){
+  const sel=document.getElementById('mi-bigcat-'+sid);
+  // fill options from cache if not yet populated
+  if(sel&&dropdownCache.catOpts.length&&sel.options.length<=1){
+    const cur=sel.value||document.getElementById('bigcat-text-'+sid)?.textContent||'';
+    sel.innerHTML=['', ...dropdownCache.catOpts].map(o=>`<option value="${o}"${cur===o?' selected':''}>${o||'— 選擇分類 —'}</option>`).join('');
+  }
+  if(sel)sel.style.display='block';
+  const txt=document.getElementById('bigcat-text-'+sid);
+  if(txt)txt.style.display='none';
+  // also open item selector
+  openItemSel(sid);
+}
+function openItemSel(sid){
+  const wrap=document.getElementById('item-wrap-'+sid);
+  if(wrap)wrap.style.display='block';
+  const txt=document.getElementById('item-text-'+sid);
+  if(txt)txt.style.display='none';
+}
+
 // ── cascading category → item dropdown ──
 function onCatChange(sid){
   const selCat=document.getElementById('mi-bigcat-'+sid).value;
   const wrap=document.getElementById('item-wrap-'+sid);
   if(!wrap)return;
   const opts=dropdownCache.itemOpts[selCat]||[];
-  if(!opts.length){wrap.innerHTML=`<select class="msel-result" id="mi-item-${sid}" style="display:none;"></select>`;return;}
+  wrap.style.display='block';
+  if(!opts.length){wrap.innerHTML=`<select class="msel-result" id="mi-item-${sid}"><option value="">— 無品項資料 —</option></select>`;return;}
   wrap.innerHTML=`<select class="msel-result" id="mi-item-${sid}" onchange="markDirty('${sid}')">${['', ...opts].map(o=>`<option value="${o}">${o||'— 選擇品項 —'}</option>`).join('')}</select>`;
 }
 
