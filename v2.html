@@ -169,11 +169,6 @@ body{
 .kcard-info{flex:1;min-width:0;}
 .k-product{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
 .k-name{font-size:14px;color:var(--text2);font-weight:500;}
-.k-timer{font-size:12px;font-weight:600;margin-top:3px;font-family:'DM Mono',monospace;}
-.k-timer.normal{color:var(--text3);}
-.k-timer.alert{color:#ef4444;}
-.k-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
-.k-tag{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--text3);font-weight:600;}
 .empty-col{border-radius:9px;padding:18px 10px;text-align:center;font-size:12px;color:var(--text3);}
 
 /* ══ MODAL ══ */
@@ -250,7 +245,7 @@ body{
 .trow.edit{grid-template-columns:1fr;gap:5px;}
 
 /* Label - bold, smaller, muted */
-.tl{font-size:14px;color:var(--text);font-weight:700;padding-top:2px;line-height:1.6;}
+.tl{font-size:12px;color:var(--text3);font-weight:700;padding-top:3px;line-height:1.5;letter-spacing:.02em;text-transform:uppercase;}
 .trow.edit .tl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);}
 
 /* Value - main text, indented via grid column */
@@ -704,39 +699,6 @@ let autoSync   = true;
 let selectedCard = null; // for interview binding
 let interviews = JSON.parse(localStorage.getItem('interviews')||'[]');
 
-// ── Stage timer tracking: { cardId: { stage, startTs } } ──
-let stageTimers = {};
-const TIMER_STAGES = new Set(['已報到等待維修','維修中']);
-const STOP_STAGES  = new Set(['待領取','已領取','取消/轉診/退回']);
-let timerInterval = null;
-
-function startTimerLoop(){
-  if(timerInterval) return;
-  timerInterval = setInterval(()=>{
-    document.querySelectorAll('.k-timer').forEach(el=>{
-      const id=el.dataset.tid;
-      const ts=stageTimers[id]?.startTs;
-      if(!ts) return;
-      const mins=Math.floor((Date.now()-ts)/60000);
-      el.textContent=mins+'分鐘';
-      el.className='k-timer '+(mins>=20?'alert':'normal');
-    });
-  },15000);
-}
-
-function setCardStage(card, newStage){
-  const id=card.id;
-  if(TIMER_STAGES.has(newStage)){
-    // restart timer only if stage changed
-    if(!stageTimers[id]||stageTimers[id].stage!==newStage){
-      stageTimers[id]={stage:newStage,startTs:Date.now()};
-    }
-  } else if(STOP_STAGES.has(newStage)){
-    delete stageTimers[id];
-  }
-  card.stage=newStage;
-}
-
 // ── Dropdown cache (loaded from GAS getDropdowns, fallback to static) ──
 let dropdownCache = {
   resultOpts: ['OK_成功','NO_失敗','未送修','轉診或退回不受理'],
@@ -936,26 +898,16 @@ function render(){
     const p=PALETTE[stage.ci];
     const sc=filtered.filter(c=>c.stage===stage.key);
     const idStr=id=>{const d=String(id||'').replace(/\D/g,'');return d?d.slice(-2):'';}
-    const cHtml=sc.length?sc.map(c=>{
-      const tid=c.id||('noid_'+c.name);
-      const showTimer=TIMER_STAGES.has(c.stage);
-      const timerTs=stageTimers[tid]?.startTs;
-      const timerMins=timerTs?Math.floor((Date.now()-timerTs)/60000):0;
-      const timerHtml=showTimer
-        ?`<div class="k-timer ${timerMins>=20?'alert':'normal'}" data-tid="${escH(tid)}">${timerMins}分鐘</div>`:'';
-      const tags=(c.noteTag||'').split(/[,，|]/).map(t=>t.trim()).filter(Boolean);
-      const tagsHtml=tags.length?`<div class="k-tags">${tags.map(t=>`<span class="k-tag">${escH(t)}</span>`).join('')}</div>`:'';
-      return`
+    const cHtml=sc.length?sc.map(c=>`
       <div class="kcard" onclick="openModal('${escH(c.id||'__empty__')}','${escH(stage.key)}')">
         <div class="kcard-inner">
           <div class="knum-circle" style="background:${p.circleBg};color:${p.circleColor};">${idStr(c.id)}</div>
           <div class="kcard-info">
             <div class="k-product">${escH(c.endOfProduct||c.item||'—')}</div>
             <div class="k-name">${escH(c.name||'—')}</div>
-            ${timerHtml}${tagsHtml}
           </div>
         </div>
-      </div>`;}).join(''):`<div class="empty-col"> </div>`;
+      </div>`).join(''):`<div class="empty-col"> </div>`;
     return`<div class="col">
       <div class="col-hd" style="background:${p.sbg};"><span class="cname" style="color:${p.sc};">${stage.key}</span><span class="ccnt" style="color:${p.sc};">${sc.length}</span></div>
       <div class="col-body" style="background:${p.colBg};">${cHtml}</div>
@@ -1008,17 +960,12 @@ function openModal(id,stageKey){
       <div class="msec-title">送修資料</div>
       <div class="trow">
         <div class="tl">編號</div>
-        <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;width:100%;">
-          <span class="tv" style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <span id="id-text-${escH(sid)}" style="font-family:'DM Mono',monospace;font-weight:600;">${escH(c.id||'—')}</span>
-            <button onclick="openIdEdit('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0;">更正</button>
-            <input type="text" id="ei-id-${escH(sid)}" value="${escH(c.id||'')}" style="display:none;font-family:'DM Mono',monospace;font-size:14px;padding:3px 8px;border:1.5px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--text);outline:none;width:110px;"
-              onkeydown="if(event.key==='Enter'){closeIdEdit('${escH(sid)}');onIdChanged('${escH(sid)}');}" onblur="closeIdEdit('${escH(sid)}');onIdChanged('${escH(sid)}')">
-          </span>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;">
-            ${['候補','有配件','已電話通知'].map(tag=>{const checked=(c.noteTag||'').includes(tag);return`<label style="display:flex;align-items:center;gap:3px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;"><input type="checkbox" data-tag="${tag}" ${checked?'checked':''} onchange="onTagChange('${escH(sid)}');markDirty('${escH(sid)}')" style="accent-color:var(--accent);width:14px;height:14px;">${tag}</label>`;}).join('')}
-          </div>
-        </div>
+        <span class="tv" style="display:flex;align-items:center;gap:6px;">
+          <span id="id-text-${escH(sid)}" style="font-family:'DM Mono',monospace;font-weight:600;">${escH(c.id||'—')}</span>
+          <button onclick="openIdEdit('${escH(sid)}')" style="font-size:11px;padding:1px 7px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0;">更正</button>
+          <input type="text" id="ei-id-${escH(sid)}" value="${escH(c.id||'')}" style="display:none;font-family:'DM Mono',monospace;font-size:14px;padding:3px 8px;border:1.5px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--text);outline:none;width:120px;"
+            onkeydown="if(event.key==='Enter'){closeIdEdit('${escH(sid)}');}" onblur="closeIdEdit('${escH(sid)}')">
+        </span>
       </div>
       <div class="trow">
         <div class="tl">姓名</div>
@@ -1083,12 +1030,7 @@ function openModal(id,stageKey){
         >${escH(c.price||'')}</span>
       </div>
       <div class="trow"><span class="tl">是否拆過</span><span class="tv">${boolPill(c.opened)}</span></div>
-      <div class="trow">
-        <span class="tl">配件</span>
-        <span class="tv-edit" id="ei-acc-${escH(sid)}"
-          onclick="startEdit(this)" onblur="stopEdit(this,'${escH(sid)}')"
-        >${escH(c.accessories||'')}</span>
-      </div>
+      <div class="trow"><span class="tl">配件</span><span class="tv"><div class="acc-wrap" id="acc-${escH(sid)}">${accHtml}</div></span></div>
     </div>
     <div class="msec">
       <div class="msec-title">故障說明</div>
@@ -1100,7 +1042,7 @@ function openModal(id,stageKey){
         >${escH(c.faultDesc||'')}</span>
       </div>
       <div class="trow"><span class="tl">產品備註</span><span class="tv note-text">${escH(c.itemNote||'—')}</span></div>
-
+      <div class="trow"><span class="tl">備註標籤</span><span class="tv">${escH(c.noteTag||'—')}</span></div>
     </div>
     <div class="msec">
       <div class="msec-title">維修紀錄</div>
@@ -1176,38 +1118,14 @@ function markDirty(sid){
   if(btn&&btn.disabled){btn.disabled=false;btn.textContent='儲存';}
 }
 
-// ── noteTag checkbox helper ──
-function onTagChange(sid){
-  // just mark dirty; actual read happens in saveCard
-  markDirty(sid);
-}
-
-// ── auto-stage: 編號有值 → 已報到等待維修 ──
-function onIdChanged(sid){
-  const inp=document.getElementById('ei-id-'+sid);
-  if(!inp)return;
-  const val=inp.value.trim();
-  if(!val)return;
-  const qs=document.getElementById('m-quick-stage');
-  if(qs){
-    const target='已報到等待維修';
-    if(qs.value!==target){qs.value=target;quickStageChange(target);}
-  }
-}
-
 // ── cascading result dropdown — use live dropdownCache ──
 function onResultChange(sid){
   const selResult=document.getElementById('mi-result-'+sid).value;
   const wrap=document.getElementById('sub-wrap-'+sid);
   if(!wrap)return;
   const opts=dropdownCache.subOpts[selResult]||[];
-  if(!opts.length){wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" style="display:none;"></select>`;}
-  else{wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" onchange="markDirty('${sid}')">${['', ...opts].map(o=>`<option value="${o}">${o||'— 選擇說明 —'}</option>`).join('')}</select>`;}
-  // auto-stage: 有維修結果 → 待領取
-  if(selResult){
-    const qs=document.getElementById('m-quick-stage');
-    if(qs&&qs.value!=='待領取'){qs.value='待領取';quickStageChange('待領取');}
-  }
+  if(!opts.length){wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" style="display:none;"></select>`;return;}
+  wrap.innerHTML=`<select class="msel-result" id="mi-resdesc-${sid}" onchange="markDirty('${sid}')">${['', ...opts].map(o=>`<option value="${o}">${o||'— 選擇說明 —'}</option>`).join('')}</select>`;
 }
 
 // ── open cat/item selectors ──
@@ -1251,11 +1169,8 @@ function saveCard(id,sid){
   const btn=document.getElementById('save-btn-'+sid);
   const getEdit=eid=>{const el=document.getElementById(eid);return el?(el.innerText||el.textContent).trim():'';}
   const g=eid=>{const el=document.getElementById(eid);return el?el.value.trim():'';}
-  // 配件: 直接讀 contenteditable
-  const newAccText = getEdit('ei-acc-'+sid) || c.accessories;
-  // 備註標籤 checkbox
-  const tagChecks=[...document.querySelectorAll(`[data-tag]`)].filter(el=>el.checked).map(el=>el.dataset.tag);
-  const newNoteTag = tagChecks.join('|') || c.noteTag;
+  const accWrap=document.getElementById('acc-'+sid);
+  const accOn=accWrap?[...accWrap.querySelectorAll('.acc-item.on')].map(el=>el.dataset.acc).join('、'):'';
   const newId      = (()=>{const el=document.getElementById('ei-id-'+sid);return el?el.value.trim():'';})() || c.id;
   const newName    = getEdit('ei-name-'+sid)     || c.name;
   const newPhone   = getEdit('ei-phone-'+sid)    || c.phone;
@@ -1273,7 +1188,7 @@ function saveCard(id,sid){
   c.price=newPrice; c.faultDesc=newFault; c.repairNote=newRepNote;
   c.partCost=newPartCost; c.repairResult=newResult; c.repairResultDesc=newResDesc;
   c.bigCat=newBigCat; c.item=newItem;
-  c.accessories=newAccText; c.noteTag=newNoteTag;
+  if(accOn)c.accessories=accOn;
   btn.disabled=true;btn.textContent='同步中…';
   gasUpdate({
     id:c.id, newId:newId, status:c.stage,
@@ -1283,8 +1198,7 @@ function saveCard(id,sid){
     bigCat:newBigCat, item:newItem,
     result:newResult, notes:newResDesc,
     repairNote:newRepNote, cost:newPartCost,
-    accessories:newAccText,
-    noteTag:newNoteTag
+    accessories:c.accessories
   },
     resp=>{btn.disabled=false;btn.textContent='儲存';showToast('✓ 已同步（列 '+resp.row+'）');closeModal();render();},
     ()=>{btn.disabled=false;btn.textContent='儲存';showToast('⚠ 本機已更新，同步失敗');closeModal();render();}
@@ -1314,8 +1228,8 @@ function quickStageChange(newStage){
   const qs=document.getElementById('m-quick-stage');
   if(qs){qs.style.borderColor=p.sbg;qs.style.color=p.circleColor;}
 
-  // update local card + timer
-  setCardStage(c, newStage);
+  // update local card
+  c.stage=newStage;
 
   // collect other fields
   const g=eid=>{const el=document.getElementById(eid);return el?el.value.trim():'';};
@@ -1665,7 +1579,6 @@ document.getElementById('q').addEventListener('input',function(){searchQ=this.va
 // ══ INIT ══
 loadSettings();
 if(GAS_URL&&GAS_URL.includes('script.google.com')){fetchData();gasGetDropdowns();startAuto();}
-startTimerLoop();
 else{setSyncState('err','請設定 GAS URL');loadDemo();}
 renderInterviewLog();
 </script>
