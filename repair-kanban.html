@@ -302,13 +302,13 @@ body{
 }
 .form-row .form-sublabel{font-size:12px;color:var(--text3);font-weight:400;margin-top:2px;}
 .form-inp,.form-ta,.form-sel{
-  width:100%;padding:11px 13px;font-size:15px;
+  width:100%;padding:11px 13px;font-size:14px;
   border:1px solid var(--border2);border-radius:10px;
   background:var(--surface);color:var(--text);
   font-family:inherit;outline:none;transition:border-color .15s;
 }
 .form-inp:focus,.form-ta:focus,.form-sel:focus{border-color:var(--accent);}
-.form-ta{resize:vertical;min-height:80px;}
+.form-ta{resize:vertical}
 .match-list{margin-top:8px;display:flex;flex-direction:column;gap:6px;}
 .match-item{
   display:flex;align-items:center;gap:10px;
@@ -468,10 +468,10 @@ input:checked+.slider::before{transform:translateX(20px);}
 
     <!-- Search & bind -->
     <div class="card-box">
-      <h3>搜尋送修家電</h3>
+      <h3>搜尋送修者資訊</h3>
       <div class="form-row">
-        <label>品項 / 姓名 /<br>編號<div class="form-sublabel">輸入關鍵字</div></label>
-        <input class="form-inp" id="iv-search" type="text" placeholder="電風扇、王小明…" oninput="ivSearch()" autocomplete="off">
+        <label>品項/姓名/編號<div class="form-sublabel"></div></label>
+        <input class="form-inp" id="iv-search" type="text" placeholder="例：電風扇、王小明、#1 …" oninput="ivSearch()" autocomplete="off">
       </div>
       <div class="match-list" id="iv-matches"></div>
     </div>
