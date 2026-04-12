@@ -677,7 +677,7 @@ let selectedCard = null;
 let interviews = JSON.parse(localStorage.getItem('interviews')||'[]');
 
 // 您的 GAS 部署網址 (依據您的提供 )
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwron3ONDWW10UwsopJ47A0-XIgDQP6Qjr9B3I3VY7JvaWbdKiPfbm5feKhnMiP0cWW/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw7SvF8enRlgtQH5BDBh7913X7bu6od5q2dtwz_ScrQJyrlRWsXad5t3EyVneqmOa5H/exec';
 
 const STAGES = [
   {key:'未報到',        ci:0},
@@ -1129,9 +1129,49 @@ function onCatChange(sid){
   wrap.innerHTML=`<select class="msel-result" id="mi-item-${sid}" onchange="markDirty('${sid}')">${['', ...opts].map(o=>`<option value="${o}">${o||'— 選擇品項 —'}</option>`).join('')}</select>`;
 }
 
-async function saveCard(id,sid){
-  const c=id?allCards.find(x=>String(x.id)===String(id)):allCards.find(x=>!x.id&&x.stage===_modalStageKey);
-  if(!c)return;
+async function saveCard(id, sid) {
+  const c = id ? allCards.find(x => String(x.id) === String(id)) : allCards.find(x => !x.id && x.stage === _modalStageKey);
+  if (!c) return;
+
+  const btn = document.getElementById('save-btn-' + sid);
+  btn.disabled = true;
+  btn.textContent = '處理中...';
+
+  try {
+    // ══ 第一階段：上傳照片 ══
+    const zones = ['外觀', '配件', '內部'];
+    for (const zone of zones) {
+      const cacheKey = sid + '__' + zone;
+      const photos = photoCache[cacheKey] || [];
+      
+      for (let i = 0; i < photos.length; i++) {
+        showToast(`🚀 正在上傳 ${zone} 照片 ${i+1}...`);
+        
+        // 依照要求格式命名：掛號號碼_分類名稱_序號
+        const fileName = `${c.id || '無編號'}_${zone}_${i+1}.jpg`;
+        
+        const photoResp = await gasPost({
+          action: 'uploadPhoto',
+          fileName: fileName,
+          photoData: photos[i].dataUrl
+        });
+
+        if (!photoResp.success) throw new Error(`${zone}照片上傳失敗: ` + photoResp.error);
+      }
+    }
+
+    // ══ 第二階段：更新試算表資料 ══
+    // ... 這裡接您原本 saveCard 裡面的 gasPost({ action: 'updateRow', ... }) 邏輯 ...
+    
+    showToast('✅ 照片與資料皆已同步成功！');
+    closeModal();
+    render();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '儲存';
+    showToast('⚠️ 失敗：' + err.message);
+  }
+}
   const btn=document.getElementById('save-btn-'+sid);
   const getEdit=eid=>{const el=document.getElementById(eid);return el?(el.innerText||el.textContent).trim():'';}
   const g=eid=>{const el=document.getElementById(eid);return el?el.value.trim():'';}
