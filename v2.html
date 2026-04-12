@@ -247,7 +247,9 @@ body{
 /* End of 產品 副標 */
 .m-head-sub{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-
+}
+.m-endprod{
+  font-size:13px;color:var(--text3);font-weight:400;
 }
 .mclose{
   width:30px;height:30px;border-radius:50%;
@@ -702,7 +704,7 @@ input:checked+.slider::before{transform:translateX(20px);}
         </div>
       </div>
       <div class="m-head-sub">
-
+        <span id="m-endprod" class="m-endprod"></span>
       </div>
     </div>
     <div class="m-body" id="m-body"></div>
@@ -1659,6 +1661,72 @@ function clearAllInterviews(){
   renderInterviewLog();
 }
 
+// ══ Treemap（矩形樹狀圖）══
+function buildTreemap(items){
+  const COLORS = ['#ff6d48','#ffab2d','#0dae42','#41bbff','#7c63ec','#2e2e2e','#ff6d48','#ffab2d','#0dae42','#41bbff'];
+  const totalVal = items.reduce((s,[,v])=>s+v, 0);
+  if(!totalVal) return '';
+
+  // Squarified treemap — 簡化版：按比例分配行高，每行內水平切分
+  const HEIGHT = 160; // px，固定總高度
+  const rows = [];
+  let remaining = [...items.map(([k,v],i)=>({k,v,i}))];
+
+  // 貪婪分行：每行盡量讓長寬比接近 1
+  function layoutRow(rowItems, rowH, yOffset){
+    const rowTotal = rowItems.reduce((s,x)=>s+x.v,0);
+    let x = 0;
+    return rowItems.map((item,ri)=>{
+      const w = Math.round(item.v / rowTotal * 100);
+      const cell = {k:item.k, v:item.v, i:item.i, x, w, y:yOffset, h:rowH};
+      x += w;
+      return cell;
+    });
+  }
+
+  // 簡單兩行分法：先算每格面積比，前半放第一行，後半放第二行
+  // 按面積排序後，找最佳切分點讓兩行面積接近 50/50
+  const sorted = [...items.map(([k,v],i)=>({k,v,i}))].sort((a,b)=>b.v-a.v);
+  let cumSum = 0, splitIdx = 0;
+  for(let i=0;i<sorted.length;i++){
+    cumSum += sorted[i].v;
+    if(cumSum >= totalVal/2){ splitIdx=i+1; break; }
+  }
+  // 至少各一個
+  if(splitIdx === 0) splitIdx = 1;
+  if(splitIdx >= sorted.length) splitIdx = sorted.length - 1;
+
+  const row1Items = sorted.slice(0, splitIdx);
+  const row2Items = sorted.slice(splitIdx);
+
+  const row1Total = row1Items.reduce((s,x)=>s+x.v,0);
+  const row2Total = row2Items.reduce((s,x)=>s+x.v,0);
+  const row1H = row2Total > 0 ? Math.round(row1Total / totalVal * HEIGHT) : HEIGHT;
+  const row2H = HEIGHT - row1H;
+
+  const cells = [
+    ...layoutRow(row1Items, row1H, 0),
+    ...(row2Items.length > 0 ? layoutRow(row2Items, row2H, row1H) : [])
+  ];
+
+  return `<div style="position:relative;height:${HEIGHT}px;display:flex;flex-direction:column;gap:2px;border-radius:8px;overflow:hidden;">
+    <div style="display:flex;gap:2px;height:${row1H}px;flex-shrink:0;">
+      ${cells.filter(c=>c.y===0).map(c=>`
+        <div style="flex:${c.v};background:${COLORS[c.i%COLORS.length]};border-radius:4px;padding:7px 8px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;min-width:0;position:relative;">
+          <div style="font-size:${c.v/totalVal>0.15?13:11}px;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(c.k)}</div>
+          <div style="font-size:${c.v/totalVal>0.15?18:13}px;font-weight:800;color:#fff;font-family:'DM Mono',monospace;line-height:1.2;">${c.v}</div>
+        </div>`).join('')}
+    </div>
+    ${row2Items.length>0?`<div style="display:flex;gap:2px;height:${row2H}px;flex-shrink:0;">
+      ${cells.filter(c=>c.y!==0).map(c=>`
+        <div style="flex:${c.v};background:${COLORS[c.i%COLORS.length]};border-radius:4px;padding:7px 8px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;min-width:0;">
+          <div style="font-size:${c.v/totalVal>0.15?13:11}px;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(c.k)}</div>
+          <div style="font-size:${c.v/totalVal>0.15?18:13}px;font-weight:800;color:#fff;font-family:'DM Mono',monospace;line-height:1.2;">${c.v}</div>
+        </div>`).join('')}
+    </div>`:''}
+  </div>`;
+}
+
 // ══ 統計 ══
 function renderStats(){
   const el=document.getElementById('stats-content');
@@ -1740,31 +1808,31 @@ function renderStats(){
     </div>
     <div style="display:flex;flex-direction:column;gap:7px;">
       <div style="display:flex;gap:7px;">
-        <div style="flex:1;background:#fff0ec;border-radius:10px;padding:10px 12px;border-left:3px solid #ff6d48;">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:3px solid #ff6d48;">
           <div style="font-size:22px;font-weight:700;color:#ff6d48;font-family:'DM Mono',monospace;line-height:1;">${waiting}</div>
-          <div style="font-size:12px;color:#c0391a;margin-top:3px;font-weight:500;">已報到等待維修</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;">已報到等待維修</div>
         </div>
-        <div style="flex:1;background:#fff8ec;border-radius:10px;padding:10px 12px;border-left:3px solid #ffab2d;">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:3px solid #ffab2d;">
           <div style="font-size:22px;font-weight:700;color:#ffab2d;font-family:'DM Mono',monospace;line-height:1;">${inProgress}</div>
-          <div style="font-size:12px;color:#a06000;margin-top:3px;font-weight:500;">維修中</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;">維修中</div>
         </div>
-        <div style="flex:1;background:#eafaf0;border-radius:10px;padding:10px 12px;border-left:3px solid #0dae42;">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:3px solid #0dae42;">
           <div style="font-size:22px;font-weight:700;color:#0dae42;font-family:'DM Mono',monospace;line-height:1;">${readyPickup}</div>
-          <div style="font-size:12px;color:#076828;margin-top:3px;font-weight:500;">待領取</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;">待領取</div>
         </div>
       </div>
       <div style="display:flex;gap:7px;">
-        <div style="flex:1;background:#eaf7ff;border-radius:10px;padding:10px 12px;border-left:3px solid #41bbff;">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:3px solid #41bbff;">
           <div style="font-size:22px;font-weight:700;color:#41bbff;font-family:'DM Mono',monospace;line-height:1;">${done}</div>
-          <div style="font-size:12px;color:#0068a0;margin-top:3px;font-weight:500;">已領取</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;">已領取</div>
         </div>
-        <div style="flex:1;background:#e8e8e8;border-radius:10px;padding:10px 12px;border-left:3px solid #2e2e2e;">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:3px solid #2e2e2e;">
           <div style="font-size:22px;font-weight:700;color:#2e2e2e;font-family:'DM Mono',monospace;line-height:1;">${pending}</div>
-          <div style="font-size:12px;color:#555;margin-top:3px;font-weight:500;">未報到</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;">未報到</div>
         </div>
-        <div style="flex:1;background:#f0eeff;border-radius:10px;padding:10px 12px;border-left:3px solid #7c63ec;">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:3px solid #7c63ec;">
           <div style="font-size:22px;font-weight:700;color:#7c63ec;font-family:'DM Mono',monospace;line-height:1;">${referred}</div>
-          <div style="font-size:12px;color:#4a30b0;margin-top:3px;font-weight:500;">轉診/退回</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;font-weight:500;">轉診/退回</div>
         </div>
       </div>
     </div>
@@ -1786,19 +1854,8 @@ function renderStats(){
     ${colChart(catList.slice(0,7),maxCat,()=>'#41bbff')}
   </div>`:''}
   ${itemList.length?`<div class="stat-card" style="margin-bottom:12px;">
-    <div class="stat-card-title">送修品項分析（前 8）</div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;">
-      ${itemList.map(([k,v],i)=>`
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-          <span style="color:var(--text2);font-weight:500;">${escH(k)}</span>
-          <span style="font-weight:600;font-family:'DM Mono',monospace;">${v}</span>
-        </div>
-        <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-          <div style="height:100%;width:${Math.round(v/maxItem*100)}%;background:${['#ff6d48','#ffab2d','#0dae42','#41bbff','#7c63ec','#2e2e2e','#ff6d48','#0dae42'][i%8]};border-radius:4px;"></div>
-        </div>
-      </div>`).join('')}
-    </div>
+    <div class="stat-card-title">送修品項分析</div>
+    <div id="treemap-wrap" style="margin-top:8px;">${buildTreemap(itemList)}</div>
   </div>`:''}
   <div class="stat-card" style="margin-bottom:12px;">
     <div class="stat-card-title">訪問關鍵字雲</div>
