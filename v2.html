@@ -231,18 +231,38 @@ body{
 .modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
 .m-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:13px auto 0;}
 .m-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:30px 20px 25px;border-bottom:1px solid var(--border);
+  padding:14px 16px 12px;border-bottom:1px solid var(--border);
   position:sticky;top:0;background:var(--surface);z-index:1;box-shadow:var(--shadow);
 }
-.m-head-l{display:flex;align-items:center;gap:11px;}
+.m-head-top{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-bottom:8px;
+}
+.m-head-l{display:flex;align-items:center;gap:8px;min-width:0;flex:1;}
+.m-head-r{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .m-num{font-size:12px;font-family:'DM Mono',monospace;color:var(--text3);}
-.m-title{font-size:17px;font-weight:800;line-height:1.3;}
+.m-title{font-size:17px;font-weight:800;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* 配件標籤 badge */
+.m-acc-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:2px 8px;border-radius:20px;
+  background:#fff8ec;border:1px solid #ffab2d;
+  font-size:11px;font-weight:700;color:#a06000;
+  flex-shrink:0;white-space:nowrap;
+}
+/* End of 產品 副標 */
+.m-head-sub{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.m-endprod{
+  font-size:13px;color:var(--text2);font-weight:500;
+}
 .mclose{
   width:30px;height:30px;border-radius:50%;
   border:1px solid var(--border2);background:var(--surface2);
   color:var(--text2);font-size:15px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
 .m-body{padding:0 0 36px;}
 
@@ -676,13 +696,21 @@ input:checked+.slider::before{transform:translateX(20px);}
   <div class="modal">
     <div class="m-handle"></div>
     <div class="m-head">
-      <div class="m-head-l">
-        <div id="m-circle" class="knum-circle" style="width:40px;height:40px;font-size:17px;"></div>
-        <div id="m-title" class="m-title"></div>
+      <div class="m-head-top">
+        <div class="m-head-l">
+          <div id="m-circle" class="knum-circle" style="width:38px;height:38px;font-size:16px;flex-shrink:0;"></div>
+          <div style="min-width:0;">
+            <div id="m-title" class="m-title"></div>
+          </div>
+          <div id="m-acc-badge" class="m-acc-badge" style="display:none;">📦 配件</div>
+        </div>
+        <div class="m-head-r">
+          <select id="m-quick-stage" class="m-quick-stage" onchange="quickStageChange(this.value)"></select>
+          <button class="mclose" onclick="closeModal()">✕</button>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <select id="m-quick-stage" class="m-quick-stage" onchange="quickStageChange(this.value)"></select>
-        <button class="mclose" onclick="closeModal()">✕</button>
+      <div class="m-head-sub">
+        <span id="m-endprod" class="m-endprod"></span>
       </div>
     </div>
     <div class="m-body" id="m-body"></div>
@@ -1088,6 +1116,12 @@ function openModal(id, rowNum, stageKey){
   mc.textContent=idD?idD.slice(-2):'?';
   mc.style.background=p.circleBg;mc.style.color=p.circleColor;
   document.getElementById('m-title').textContent=(c.name||'—');
+  // End of 產品 副標
+  document.getElementById('m-endprod').textContent = c.endOfProduct||c.item||'';
+  // 配件 badge：C 欄 noteTag 含「有配件」或 accessories 有內容時顯示
+  const hasAcc = (c.noteTag||'').includes('有配件') || (c.accessories && c.accessories.trim() && c.accessories.trim()!=='無');
+  const accBadge = document.getElementById('m-acc-badge');
+  accBadge.style.display = hasAcc ? 'inline-flex' : 'none';
   const qs=document.getElementById('m-quick-stage');
   qs.innerHTML=STAGES.map(s=>`<option value="${s.key}"${c.stage===s.key?' selected':''}>${s.key}</option>`).join('');
   qs.style.borderColor=p.sbg;qs.style.color=p.circleColor;
@@ -1812,25 +1846,80 @@ function buildPhotoSection(c, sid, zone, maxCount){
     </div>
   </div>`;
 }
+// 壓縮圖片到最長邊 1200px，JPEG 品質 0.82
+function compressImage(file, callback){
+  const MAX = 780, Q = 0.82;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      let w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        if(w > h){ h = Math.round(h * MAX / w); w = MAX; }
+        else      { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', Q);
+      callback(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function triggerPhotoInput(sid, zone, maxCount){
   const key = getPhotoCacheKey(sid, zone);
   if(!photoCache[key]) photoCache[key] = [];
   if(photoCache[key].length >= maxCount){ showToast('最多 '+maxCount+' 張'); return; }
+  // 取得目前卡片 id（sid 是 rowNum）
+  const c = allCards.find(x => x.rowNum === parseInt(sid));
+  const cardId = c ? (c.id || '') : '';
+
   const inp = document.createElement('input');
   inp.type = 'file';
   inp.accept = 'image/*';
   inp.capture = 'environment';
-  inp.onchange = function(){
+  inp.onchange = async function(){
     if(!inp.files || !inp.files[0]) return;
     const file = inp.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e){
-      const dataUrl = e.target.result;
-      photoCache[key].push({ dataUrl, file, status:'pending' });
+    const idx = photoCache[key].length;
+    // 先加入 pending 縮圖讓使用者看到預覽
+    const placeholderUrl = URL.createObjectURL(file);
+    const entry = { dataUrl: placeholderUrl, file, status:'pending' };
+    photoCache[key].push(entry);
+    refreshPhotoThumbs(sid, zone, maxCount);
+
+    // 壓縮
+    compressImage(file, async function(compressedDataUrl){
+      entry.dataUrl = compressedDataUrl;
       refreshPhotoThumbs(sid, zone, maxCount);
-      showToast('📷 照片已加入，儲存時自動上傳');
-    };
-    reader.readAsDataURL(file);
+
+      if(!cardId){
+        showToast('📷 照片已暫存，請先填入掛號號碼再儲存');
+        return;
+      }
+      // 立即上傳
+      entry.status = 'uploading';
+      refreshPhotoThumbs(sid, zone, maxCount);
+      try {
+        const r = await uploadPhotoToGAS(cardId, zone, idx, file, compressedDataUrl);
+        if(r && r.fileId){
+          entry.status  = 'done';
+          entry.fileId  = r.fileId;
+          entry.fileUrl = r.fileUrl;
+          showToast('✓ 照片已上傳');
+        } else {
+          entry.status = 'fail';
+          showToast('⚠️ 上傳失敗，請重試');
+        }
+      } catch(e){
+        entry.status = 'fail';
+        showToast('⚠️ 上傳失敗：' + e.message);
+      }
+      refreshPhotoThumbs(sid, zone, maxCount);
+    });
   };
   inp.click();
 }
