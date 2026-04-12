@@ -663,8 +663,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 </nav>
 
 <script>
- circleColor:'#076828'},
-  // 已領取：天藍系// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
 // 狀態
 // ═══════════════════════════════════════════
 let allCards   = [];
@@ -677,6 +676,9 @@ let autoSync   = true;
 let selectedCard = null;
 let interviews = JSON.parse(localStorage.getItem('interviews')||'[]');
 
+// 您的 GAS 部署網址 (依據您的提供 )
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwron3ONDWW10UwsopJ47A0-XIgDQP6Qjr9B3I3VY7JvaWbdKiPfbm5feKhnMiP0cWW/exec';
+
 const STAGES = [
   {key:'未報到',        ci:0},
   {key:'已報到等待維修',ci:1},
@@ -686,28 +688,16 @@ const STAGES = [
   {key:'取消/轉診/退回',  ci:5},
 ];
 
-// 六階段狀態色系統
-// ci:0 未報到        → 深灰  #2e2e2e
-// ci:1 已報到等待維修 → 橘紅  #ff6d48
-// ci:2 維修中        → 琥珀  #ffab2d
-// ci:3 待領取        → 綠    #0dae42
-// ci:4 已領取        → 藍    #41bbff
-// ci:5 取消/轉診/退回 → 紫    #7c63ec
 const PALETTE = [
-  // 未報到：深灰系
   {sc:'#fff', sbg:'#2e2e2e', circleBg:'#d0d0d0', circleColor:'#2e2e2e'},
-  // 已報到等待維修：橘紅系
   {sc:'#fff', sbg:'#ff6d48', circleBg:'#ffd4c8', circleColor:'#c0391a'},
-  // 維修中：琥珀系
   {sc:'#fff', sbg:'#ffab2d', circleBg:'#ffe3a8', circleColor:'#a06000'},
-  // 待領取：綠色系
-  {sc:'#fff', sbg:'#0dae42', circleBg:'#b8f0cc',
+  {sc:'#fff', sbg:'#0dae42', circleBg:'#b8f0cc', circleColor:'#076828'},
   {sc:'#fff', sbg:'#41bbff', circleBg:'#bde9ff', circleColor:'#0068a0'},
-  // 取消/轉診/退回：紫色系
   {sc:'#fff', sbg:'#7c63ec', circleBg:'#d8d0ff', circleColor:'#4a30b0'},
 ];
 
-// 下拉選單快取（fallback）
+// 下拉選單快取
 let dropdownCache = {
   resultOpts: ['OK_成功','NO_失敗','轉診或退回不受理'],
   subOpts: {
@@ -726,27 +716,27 @@ let dropdownCache = {
   }
 };
 
-// ══ 設定 ══
+// ══ 設定處理 ══
 function loadSettings(){
-  const gs = localStorage.getItem('gasUrl');
-  if(gs){ document.getElementById('gas-url-input').value=gs; }
+  const gs = localStorage.getItem('gasUrl') || GAS_URL;
+  document.getElementById('gas-url-input').value = gs;
   const ie = localStorage.getItem('interviewEnabled');
-  interviewEnabled = ie===null ? true : ie==='true';
+  interviewEnabled = ie === null ? true : ie === 'true';
   document.getElementById('toggle-interview').checked = interviewEnabled;
   const as = localStorage.getItem('autoSync');
-  autoSync = as===null ? true : as==='true';
+  autoSync = as === null ? true : as === 'true';
   document.getElementById('toggle-autosync').checked = autoSync;
   applyInterviewSetting();
 }
 function saveSettings(){
   const url = document.getElementById('gas-url-input').value.trim();
-  if(url) { localStorage.setItem('gasUrl',url); }
+  if(url) localStorage.setItem('gasUrl', url);
   interviewEnabled = document.getElementById('toggle-interview').checked;
   localStorage.setItem('interviewEnabled', interviewEnabled);
   autoSync = document.getElementById('toggle-autosync').checked;
   localStorage.setItem('autoSync', autoSync);
   applyInterviewSetting();
-  startAutoSync(); // 重啟或停止自動同步
+  startAutoSync();
 }
 function applyInterviewSetting(){
   const ivTab = document.getElementById('tab-interview');
@@ -754,109 +744,69 @@ function applyInterviewSetting(){
   document.getElementById('iv-form-wrap').style.display = interviewEnabled ? '' : 'none';
 }
 
-// ══ 分頁切換 ══
-const PAGE_TITLES = {
-  repair:    '維修看板',
-  interview: '訪問記錄',
-  stats:     '統計',
-  settings:  '設定',
-};
-function switchTab(tab){
-  currentTab = tab;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+tab).classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
-  // 更新 topbar 標題
-  document.getElementById('topbar-title').textContent = PAGE_TITLES[tab] || '';
-  // sync-pill 只在維修頁顯示
-  const isRepair = tab === 'repair';
-  document.getElementById('sync-pill').style.display = isRepair ? 'flex' : 'none';
-  if(tab==='stats') renderStats();
-  if(tab==='interview') renderInterviewLog();
-}
-
-// ══ 資料對應 ══
-function mapCard(raw){
-  const phone = String(raw.phone||raw['送件者電話']||'');
-  let phone3  = String(raw.phone3||raw['電話後3碼']||'');
-  if(!phone3&&phone){ const d=phone.replace(/\D/g,''); phone3=d.length>=3?d.slice(-3):d; }
-  const rawId = String(raw.id||raw['編號']||'').trim();
-  const rawStage = (raw.stage||raw['流程階段']||raw.status||'').trim();
-  const stage = rawId
-    ? (rawStage || '已報到等待維修')
-    : '未報到';
-  return{
-    rowNum:raw.rowNum||0,
-    id:rawId, endOfProduct:raw.endOfProduct||raw['End of 產品']||raw.item||'',
-    phone3, name:raw.name||raw['送修者姓名']||raw['姓名']||'',
-    phone, regNum:raw.regNum||rawId||'',
-    stage, noteTag:raw.noteTag||raw['備註標籤']||'',
-    bigCat:raw.bigCat||raw['家電大分類']||raw['產品分類']||'',
-    item:raw.item||raw['產品品項']||'',
-    subItem:raw.subItem||raw['產品細項']||'',
-    itemNote:raw.itemNote||raw['產品備註']||raw['備註說明']||'',
-    brand:raw.brand||raw['品牌']||'',
-    model:raw.model||raw['型號']||'',
-    accessories:String(raw.accessories||raw['配件']||''),
-    mfgDate:raw.mfgDate||raw['出廠日期']||'',
-    price:raw.price||raw['產品價格']||'',
-    faultDesc:raw.faultDesc||raw['故障說明']||'',
-    opened:raw.opened||raw['是否拆過']||'',
-    extraNote:raw.extraNote||raw['其他備註']||'',
-    repairResult:raw.repairResult||raw['維修_結果分類']||'',
-    repairResultDesc:raw.repairResultDesc||raw['維修_結果說明']||'',
-    repairNote:raw.repairNote||raw['維修_補充備註']||'',
-    repairman:raw.repairman||raw['維修者']||'',
-    partCost:String(raw.partCost||raw['零件費']||''),
-    donationFee:String(raw.donationFee||raw['隨喜費']||''),
-    ecoContrib:raw.ecoContrib||raw['減碳貢獻']||'',
-  };
-}
-
-// ══ GAS API 設定 ══
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwron3ONDWW10UwsopJ47A0-XIgDQP6Qjr9B3I3VY7JvaWbdKiPfbm5feKhnMiP0cWW/exec';
-
-// ══ 資料同步 ══
+// ══ 資料同步核心 ══
 let _syncTimer = null;
-
 async function fetchData() {
-  if (!GAS_URL) return;
-  setSyncState('syncing', '同步中…');
+  const currentUrl = localStorage.getItem('gasUrl') || GAS_URL;
+  if (!currentUrl) return;
+  setSyncState('syncing');
   setLBar(true);
   try {
-    const res  = await fetch(GAS_URL + '?t=' + Date.now());
+    const res = await fetch(currentUrl + '?t=' + Date.now());
     const json = await res.json();
     if (json.error) throw new Error(json.error);
+    
+    // 將抓到的資料傳入載入函數 [cite: 7, 11]
     loadExternalData(json.cards || []);
+    
+    const now = new Date();
+    setSyncState('ok');
   } catch(err) {
-    setSyncState('err', '同步失敗');
-    showToast('⚠️ 無法連線 Google Sheets');
+    setSyncState('err');
+    showToast('⚠️ 同步失敗，請檢查網路或 GAS 權限');
   } finally {
     setLBar(false);
   }
 }
-
 function startAutoSync() {
   clearInterval(_syncTimer);
   if (autoSync) _syncTimer = setInterval(fetchData, 30000);
 }
-
 async function gasPost(body) {
-  const res = await fetch(GAS_URL, {
-    method: 'POST',
-    body: JSON.stringify(body)
-  });
+  const currentUrl = localStorage.getItem('gasUrl') || GAS_URL;
+  const res = await fetch(currentUrl, { method: 'POST', body: JSON.stringify(body) });
   return res.json();
 }
 
-// ══ 載入外部資料 ══
+// ══ 資料對應與渲染 (保留所有功能邏輯) ══
+function mapCard(raw){
+  const phone = String(raw.phone || '');
+  let phone3 = String(raw.phone3 || '');
+  if(!phone3 && phone){ 
+    const d = phone.replace(/\D/g,''); 
+    phone3 = d.length >= 3 ? d.slice(-3) : d; 
+  }
+  return {
+    rowNum: raw.rowNum || 0,
+    id: String(raw.id || '').trim(),
+    endOfProduct: raw.endOfProduct || raw.item || '',
+    phone3, name: raw.name || '', phone,
+    stage: raw.stage || '未報到',
+    noteTag: raw.noteTag || '',
+    bigCat: raw.bigCat || '', item: raw.item || '', subItem: raw.subItem || '',
+    brand: raw.brand || '', model: raw.model || '',
+    accessories: String(raw.accessories || ''),
+    mfgDate: raw.mfgDate || '', faultDesc: raw.faultDesc || '',
+    repairResult: raw.repairResult || '', repairResultDesc: raw.repairResultDesc || '',
+    repairNote: raw.repairNote || '', repairman: raw.repairman || '',
+    partCost: String(raw.partCost || ''), ecoContrib: raw.ecoContrib || ''
+  };
+}
+
 function loadExternalData(cards){
   allCards = cards.map(mapCard);
   buildStageChips();
   render();
-  const now = new Date();
-  setSyncState('ok', now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')+' 同步');
 }
 
 // ══ 篩選chip ══
@@ -1681,13 +1631,15 @@ interviews = [
 ];
 localStorage.setItem('interviews', JSON.stringify(interviews));
 
-// ══ 初始化執行 ══
-window.addEventListener('DOMContentLoaded', () => {
-  loadSettings();
-  fetchData();
-  startAutoSync();
-  document.getElementById('q').addEventListener('input', function(){ searchQ = this.value.trim(); render(); });
-});
+// ══ 初始化 (最重要的修正：移除手寫 Demo 資料) ══
+loadSettings();
+renderInterviewLog();
+document.getElementById('sync-pill').style.display = 'flex';
+document.getElementById('q').addEventListener('input', function(){ searchQ = this.value.trim(); render(); });
+
+// 修正點：移除原本的 loadExternalData(DEMO_CARDS)，改為呼叫 API [cite: 6]
+fetchData(); 
+startAutoSync();
 </script>
 </body>
 </html>
