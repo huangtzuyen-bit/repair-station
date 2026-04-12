@@ -663,7 +663,8 @@ input:checked+.slider::before{transform:translateX(20px);}
 </nav>
 
 <script>
-// ═══════════════════════════════════════════
+ circleColor:'#076828'},
+  // 已領取：天藍系// ═══════════════════════════════════════════
 // 狀態
 // ═══════════════════════════════════════════
 let allCards   = [];
@@ -700,8 +701,7 @@ const PALETTE = [
   // 維修中：琥珀系
   {sc:'#fff', sbg:'#ffab2d', circleBg:'#ffe3a8', circleColor:'#a06000'},
   // 待領取：綠色系
-  {sc:'#fff', sbg:'#0dae42', circleBg:'#b8f0cc', circleColor:'#076828'},
-  // 已領取：天藍系
+  {sc:'#fff', sbg:'#0dae42', circleBg:'#b8f0cc',
   {sc:'#fff', sbg:'#41bbff', circleBg:'#bde9ff', circleColor:'#0068a0'},
   // 取消/轉診/退回：紫色系
   {sc:'#fff', sbg:'#7c63ec', circleBg:'#d8d0ff', circleColor:'#4a30b0'},
@@ -1681,14 +1681,13 @@ interviews = [
 ];
 localStorage.setItem('interviews', JSON.stringify(interviews));
 
-// ══ 初始化 ══
-loadSettings();
-renderInterviewLog();
-document.getElementById('sync-pill').style.display = 'flex';
-document.getElementById('q').addEventListener('input',function(){searchQ=this.value.trim();render();});
-// 載入 demo 資料（跳過真實 API）
-loadExternalData(DEMO_CARDS);
-setSyncState('ok');
+// ══ 初始化執行 ══
+window.addEventListener('DOMContentLoaded', () => {
+  loadSettings();
+  fetchData();
+  startAutoSync();
+  document.getElementById('q').addEventListener('input', function(){ searchQ = this.value.trim(); render(); });
+});
 </script>
 </body>
 </html>
