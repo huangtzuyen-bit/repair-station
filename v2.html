@@ -817,6 +817,9 @@ function getRepairState(c){
   if(ts.tsRepDone) return 'done';
   return 'running';
 }
+
+// ══ 設定 ══
+function loadSettings(){
   const gs = localStorage.getItem('gasUrl');
   if(gs){ document.getElementById('gas-url-input').value=gs; }
   const ie = localStorage.getItem('interviewEnabled');
@@ -1398,6 +1401,7 @@ setInterval(()=>{
   const sid = el.id.replace('timer-row-','');
   refreshTimerDisplay(parseInt(sid));
 }, 60000);
+function toggleMsec(titleEl){
   const body = titleEl.nextElementSibling;
   const chev = titleEl.querySelector('.msec-chevron');
   const isOpen = !body.classList.contains('collapsed');
