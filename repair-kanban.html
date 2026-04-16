@@ -1520,6 +1520,7 @@ function getSelectedNoteTags(sid){
   if(!wrap) return '';
   return [...wrap.querySelectorAll('.notetag-chip.on')].map(el=>el.dataset.tag).join('、');
 }
+async function saveCard(id,sid){
   // sid 現在是 rowNum 字串，用它精準找卡片
   const rowNum = parseInt(sid);
   const c = allCards.find(x => x.rowNum === rowNum);
