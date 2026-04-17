@@ -1052,16 +1052,17 @@ async function gasPostPhoto(body) {
     body: JSON.stringify(body)
   });
   const text = await res.text();
+  // 診斷：把回傳前30字顯示在 toast
+  showToast('GAS回傳:' + text.slice(0,60));
   if(text.trim().startsWith('<')){
     throw new Error('GAS 回傳 HTML，請確認部署設定「存取權：任何人」');
   }
   try {
     const parsed = JSON.parse(text);
-    // 強制：只要沒有明確 error，就當成功
     if(!parsed.error) parsed.success = true;
     return parsed;
   } catch(e) {
-    throw new Error('GAS 回傳格式錯誤：' + text.slice(0, 80));
+    throw new Error('JSON解析失敗:' + text.slice(0, 60));
   }
 }
 
@@ -2290,7 +2291,7 @@ function triggerPhotoInput(sid, zone, maxCount){
         }
       } catch(e){
         entry.status = 'fail';
-        showToast('⚠️ ' + e.message);
+        showToast('catch錯誤:' + e.message.slice(0,80));
       }
       refreshPhotoThumbs(sid, zone, maxCount);
     });
