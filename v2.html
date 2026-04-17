@@ -1045,17 +1045,21 @@ async function gasPost(body) {
 }
 
 async function gasPostPhoto(body) {
-  // 照片上傳用獨立函式，回傳詳細錯誤
   const res = await fetch(GAS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
+    redirect: 'follow',
     body: JSON.stringify(body)
   });
   const text = await res.text();
+  // 如果收到 HTML（登入頁/錯誤頁），直接拋出
+  if(text.trim().startsWith('<')){
+    throw new Error('GAS 回傳 HTML，請確認部署設定「存取權：任何人」');
+  }
   try {
     return JSON.parse(text);
   } catch(e) {
-    throw new Error('GAS 回傳非 JSON：' + text.slice(0, 100));
+    throw new Error('GAS 回傳格式錯誤：' + text.slice(0, 80));
   }
 }
 
@@ -2235,14 +2239,14 @@ function triggerPhotoInput(sid, zone, maxCount){
       refreshPhotoThumbs(sid, zone, maxCount);
       try {
         const r = await uploadPhotoToGAS(cardId, zone, idx, file, compressedDataUrl);
-        if(r && r.fileId){
+        if(r && (r.success || r.fileId)){
           entry.status  = 'done';
-          entry.fileId  = r.fileId;
-          entry.fileUrl = r.fileUrl;
+          entry.fileId  = r.fileId || '';
+          entry.fileUrl = r.fileUrl || '';
           showToast('✓ 照片已上傳');
         } else {
           entry.status = 'fail';
-          const errMsg = r && r.error ? r.error : '未知錯誤';
+          const errMsg = r && r.error ? r.error : '回傳格式異常';
           showToast('⚠️ ' + errMsg);
         }
       } catch(e){
@@ -2325,10 +2329,10 @@ async function uploadAllPhotos(cardId) {
       refreshPhotoThumbs(cardId, zone, 2);
       try {
         const r = await uploadPhotoToGAS(cardId, zone, i, p.file, p.dataUrl);
-        if (r && r.fileId) {
+        if (r && (r.success || r.fileId)) {
           p.status  = 'done';
-          p.fileId  = r.fileId;
-          p.fileUrl = r.fileUrl;
+          p.fileId  = r.fileId || '';
+          p.fileUrl = r.fileUrl || '';
           successCount++;
         } else {
           p.status = 'fail';
