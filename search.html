@@ -620,7 +620,7 @@
     <div class="config-title">⚙️ 頁面設定</div>
     <div class="config-field">
       <label>GOOGLE SCRIPT 網址 (GAS URL)</label>
-      <input type="text" id="cfg-gas" placeholder="https://script.google.com/macros/s/…/exec">
+      <input type="text" id="cfg-gas" placeholder="https://script.google.com/macros/s/AKfycbywac1vareZCRn0rAIVfTBjYJm5rcekHj6ihLRFGRwrtWuBvUAus9QLfN4PCSAYhvv0/exec">
     </div>
     <div class="config-field">
       <label>活動地點</label>
@@ -648,9 +648,9 @@
 // ═══════════════════════════════
 let CFG = {
   gasUrl:   '',
-  location: '南機場夜市廣場',
+  location: '地點：台北市信義區六張犁社宅2區廣場',
   date:     new Date().toISOString().slice(0,10),
-  time:     '14:00 – 18:00',
+  time:     '14:00 – 16:00',
   photos:   []
 };
 
@@ -675,7 +675,7 @@ function applyConfig(){
     });
   }
   document.getElementById('footer-year').textContent =
-    `© ${new Date().getFullYear()} 南機場小家電維修所`;
+    `© ${new Date().getFullYear()} 小家電維修所`;
 }
 function openConfig(){
   document.getElementById('cfg-gas').value      = CFG.gasUrl   || '';
@@ -723,11 +723,11 @@ let allCards = [];
 const STAGE_COLORS = {
   '未報到':        { bg:'#e8e8e8', color:'#555',    badge:'bg:#e8e8e8;color:#555' },
   '等待維修':      { bg:'#ffd4c8', color:'#c0391a', badgeBg:'#fff0ec' },
-  '已報到等待維修':{ bg:'#ffd4c8', color:'#c0391a', badgeBg:'#fff0ec' },
+  '等待維修':{ bg:'#ffd4c8', color:'#c0391a', badgeBg:'#fff0ec' },
   '維修中':        { bg:'#ffe3a8', color:'#a06000',  badgeBg:'#fff8ec' },
   '待領取':        { bg:'#b8f0cc', color:'#076828',  badgeBg:'#eafaf0' },
   '已領取':        { bg:'#bde9ff', color:'#0068a0',  badgeBg:'#eaf7ff' },
-  '取消/轉診/退回':{ bg:'#d8d0ff', color:'#4a30b0',  badgeBg:'#f0eeff' },
+  '取消轉診退回':{ bg:'#d8d0ff', color:'#4a30b0',  badgeBg:'#f0eeff' },
 };
 function stageStyle(s){
   return STAGE_COLORS[s] || STAGE_COLORS['未報到'];
