@@ -542,7 +542,7 @@ input:checked+.slider::before{transform:translateX(20px);}
 .lbar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:999;transform:scaleX(0);transform-origin:left;transition:transform .3s ease;}
 .lbar.on{transform:scaleX(.75);}
 .lbar.done{transform:scaleX(1);opacity:0;transition:transform .2s,opacity .3s .1s;}
-.toast{position:fixed;bottom:calc(var(--tab-h) + 12px);left:50%;transform:translateX(-50%);background:#1c1e2e;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:20px;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;}
+.toast{position:fixed;bottom:calc(var(--tab-h) + 12px);left:50%;transform:translateX(-50%);background:#1c1e2e;color:#fff;font-size:12px;font-weight:500;padding:10px 16px;border-radius:12px;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s;white-space:pre-wrap;word-break:break-all;max-width:90vw;text-align:left;}
 .toast.show{opacity:1;}
 
 /* ══ PHOTO SECTION ══ */
@@ -2314,20 +2314,19 @@ function triggerPhotoInput(sid, zone, maxCount){
       refreshPhotoThumbs(sid, zone, maxCount);
       try {
         const r = await uploadPhotoToGAS(cardId, zone, idx, file, compressedDataUrl);
+        // 顯示完整回傳（診斷用）
+        showToast('回傳:' + JSON.stringify(r).slice(0, 120), 6000);
         if(r && !r.error){
           entry.status  = 'done';
           entry.fileId  = r.fileId  || '';
           entry.fileUrl = r.fileUrl || '';
-          // dataUrl 保留，用於本機縮圖顯示
           savePhotoMeta(sid, zone);
-          showToast('✓ 照片已上傳');
         } else {
           entry.status = 'fail';
-          showToast('⚠️ ' + (r && r.error ? r.error : '上傳失敗'));
         }
       } catch(e){
         entry.status = 'fail';
-        showToast('⚠️ ' + e.message.slice(0,80));
+        showToast('CATCH:' + e.message.slice(0, 120), 6000);
       }
       refreshPhotoThumbs(sid, zone, maxCount);
     });
@@ -2444,10 +2443,10 @@ function setLBar(on){
   b.className='lbar'+(on?' on':' done');
   if(!on)setTimeout(()=>b.className='lbar',400);
 }
-function showToast(msg){
+function showToast(msg, duration){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'), duration||3000);
 }
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
