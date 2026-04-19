@@ -727,7 +727,21 @@ input:checked+.slider::before{transform:translateX(20px);}
         <label>Google Script URL</label>
         <input class="form-inp" id="gas-url-input" placeholder="https://script.google.com/macros/s/…/exec" oninput="saveSettings()">
       </div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px;">修改後重新整理即生效</div>
+      <div class="form-row" style="margin-top:10px;">
+        <label>連動試算表</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="form-inp" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/…" oninput="saveSettings()" style="flex:1;">
+          <button onclick="openLink('sheet-url-input')" style="padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;">開啟 ↗</button>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:10px;">
+        <label>照片資料夾（Google Drive）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="form-inp" id="photo-folder-input" placeholder="https://drive.google.com/drive/folders/…" oninput="saveSettings()" style="flex:1;">
+          <button onclick="openLink('photo-folder-input')" style="padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;">開啟 ↗</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px;">修改後重新整理即生效</div>
     </div>
 
     <div class="card-box" style="background:var(--surface2);">
@@ -918,9 +932,19 @@ function getRepairState(c){
 }
 
 // ══ 設定 ══
+const DEFAULT_SHEET_URL  = 'https://docs.google.com/spreadsheets/d/1qSAPHN0_dc3o60blJoyam873vtnIu0QnaY4PYK40M68/edit?gid=0#gid=0';
+const DEFAULT_PHOTO_URL  = 'https://drive.google.com/drive/folders/1SHI--kvSIul84RBgOC8efGtU7fuFmBTl';
+
 function loadSettings(){
   const gs = localStorage.getItem('gasUrl');
   if(gs){ document.getElementById('gas-url-input').value=gs; }
+  // 試算表連結（預設填入）
+  const su = localStorage.getItem('sheetUrl') || DEFAULT_SHEET_URL;
+  document.getElementById('sheet-url-input').value = su;
+  // 照片資料夾連結（預設填入）
+  const pu = localStorage.getItem('photoFolderUrl') || DEFAULT_PHOTO_URL;
+  document.getElementById('photo-folder-input').value = pu;
+
   const ie = localStorage.getItem('interviewEnabled');
   interviewEnabled = ie===null ? true : ie==='true';
   document.getElementById('toggle-interview').checked = interviewEnabled;
@@ -932,12 +956,21 @@ function loadSettings(){
 function saveSettings(){
   const url = document.getElementById('gas-url-input').value.trim();
   if(url) { localStorage.setItem('gasUrl',url); }
+  const su = document.getElementById('sheet-url-input').value.trim();
+  if(su)  { localStorage.setItem('sheetUrl', su); }
+  const pu = document.getElementById('photo-folder-input').value.trim();
+  if(pu)  { localStorage.setItem('photoFolderUrl', pu); }
   interviewEnabled = document.getElementById('toggle-interview').checked;
   localStorage.setItem('interviewEnabled', interviewEnabled);
   autoSync = document.getElementById('toggle-autosync').checked;
   localStorage.setItem('autoSync', autoSync);
   applyInterviewSetting();
-  startAutoSync(); // 重啟或停止自動同步
+  startAutoSync();
+}
+function openLink(inputId){
+  const url = document.getElementById(inputId).value.trim();
+  if(url) window.open(url, '_blank');
+  else showToast('請先填入連結');
 }
 function applyInterviewSetting(){
   const ivTab = document.getElementById('tab-interview');
