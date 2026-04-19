@@ -1052,17 +1052,13 @@ async function gasPostPhoto(body) {
     body: JSON.stringify(body)
   });
   const text = await res.text();
-  // 診斷：把回傳前30字顯示在 toast
-  showToast('GAS回傳:' + text.slice(0,60));
   if(text.trim().startsWith('<')){
     throw new Error('GAS 回傳 HTML，請確認部署設定「存取權：任何人」');
   }
   try {
-    const parsed = JSON.parse(text);
-    if(!parsed.error) parsed.success = true;
-    return parsed;
+    return JSON.parse(text);
   } catch(e) {
-    throw new Error('JSON解析失敗:' + text.slice(0, 60));
+    throw new Error('JSON解析失敗:' + text.slice(0, 80));
   }
 }
 
@@ -2191,7 +2187,7 @@ function renderStats(){
 const photoCache = {};
 function getPhotoCacheKey(sid, zone){ return sid + '__' + zone; }
 
-// 照片 metadata 持久化（只存 fileUrl/fileId，不存 base64）
+// 照片 metadata 持久化（存 fileId/fileUrl/dataUrl）
 function savePhotoMeta(sid, zone){
   const key = getPhotoCacheKey(sid, zone);
   const photos = (photoCache[key]||[]).map(p=>({
@@ -2199,18 +2195,29 @@ function savePhotoMeta(sid, zone){
     fileId:  p.fileId  || '',
     fileUrl: p.fileUrl || '',
     name:    p.name    || '',
+    dataUrl: p.status === 'done' ? (p.dataUrl || '') : '',
   }));
-  try{ localStorage.setItem('pm_'+key, JSON.stringify(photos)); }catch(e){}
+  try{ localStorage.setItem('pm_'+key, JSON.stringify(photos)); }catch(e){
+    // localStorage 空間不足時，只存 metadata 不存 dataUrl
+    const slim = photos.map(p=>({...p, dataUrl:''}));
+    try{ localStorage.setItem('pm_'+key, JSON.stringify(slim)); }catch(e2){}
+  }
 }
 function loadPhotoMeta(sid, zone){
   const key = getPhotoCacheKey(sid, zone);
   try{
     const saved = JSON.parse(localStorage.getItem('pm_'+key)||'[]');
-    // 還原為只有 metadata 的 entry（無 dataUrl/file，縮圖改用 fileUrl 顯示）
     if(!photoCache[key]) photoCache[key] = [];
     saved.forEach((m,i)=>{
       if(!photoCache[key][i]){
-        photoCache[key][i] = { dataUrl: '', file: null, status: m.status, fileId: m.fileId, fileUrl: m.fileUrl, name: m.name };
+        photoCache[key][i] = {
+          dataUrl: m.dataUrl || '',
+          file: null,
+          status:  m.status,
+          fileId:  m.fileId,
+          fileUrl: m.fileUrl,
+          name:    m.name
+        };
       }
     });
   }catch(e){}
@@ -2222,11 +2229,11 @@ function buildPhotoSection(c, sid, zone, maxCount){
   loadPhotoMeta(sid, zone);
   const photos = photoCache[key];
   const thumbsHtml = photos.map((p, i) => {
-    // 已上傳用 Drive 預覽連結，否則用 base64
-    const imgSrc = (p.status==='done' && p.fileId)
-      ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w200`
-      : (p.dataUrl || '');
-    const clickAction = (p.status==='done' && p.fileUrl)
+    // 優先用 dataUrl，沒有才用 Drive thumbnail
+    const imgSrc = p.dataUrl
+      ? p.dataUrl
+      : (p.fileId ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w200` : '');
+    const clickAction = p.fileUrl
       ? `window.open('${p.fileUrl}','_blank')`
       : (p.dataUrl ? `openLightbox('${p.dataUrl}')` : '');
     return `<div class="photo-thumb-wrap" id="pt-${escH(sid)}-${zone}-${i}">
@@ -2307,20 +2314,20 @@ function triggerPhotoInput(sid, zone, maxCount){
       refreshPhotoThumbs(sid, zone, maxCount);
       try {
         const r = await uploadPhotoToGAS(cardId, zone, idx, file, compressedDataUrl);
-        if(r && (r.success || r.fileId)){
+        if(r && !r.error){
           entry.status  = 'done';
-          entry.fileId  = r.fileId || '';
+          entry.fileId  = r.fileId  || '';
           entry.fileUrl = r.fileUrl || '';
-          savePhotoMeta(sid, zone); // 持久化到 localStorage
+          // dataUrl 保留，用於本機縮圖顯示
+          savePhotoMeta(sid, zone);
           showToast('✓ 照片已上傳');
         } else {
           entry.status = 'fail';
-          const errMsg = r && r.error ? r.error : '回傳格式異常';
-          showToast('⚠️ ' + errMsg);
+          showToast('⚠️ ' + (r && r.error ? r.error : '上傳失敗'));
         }
       } catch(e){
         entry.status = 'fail';
-        showToast('catch錯誤:' + e.message.slice(0,80));
+        showToast('⚠️ ' + e.message.slice(0,80));
       }
       refreshPhotoThumbs(sid, zone, maxCount);
     });
@@ -2341,10 +2348,10 @@ function refreshPhotoThumbs(sid, zone, maxCount){
   const container = document.getElementById('photo-thumbs-'+sid+'-'+zone);
   if(!container) return;
   const thumbs = photos.map((p, i) => {
-    const imgSrc = (p.status==='done' && p.fileId)
-      ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w200`
-      : (p.dataUrl || '');
-    const clickAction = (p.status==='done' && p.fileUrl)
+    const imgSrc = p.dataUrl
+      ? p.dataUrl
+      : (p.fileId ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w200` : '');
+    const clickAction = p.fileUrl
       ? `window.open('${p.fileUrl}','_blank')`
       : (p.dataUrl ? `openLightbox('${p.dataUrl}')` : '');
     return `<div class="photo-thumb-wrap">
